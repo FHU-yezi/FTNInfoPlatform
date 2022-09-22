@@ -7,7 +7,7 @@ from utils.db import cookie_data_db, user_data_db
 
 
 def get_hash(text: str) -> str:
-    return sha256(text.encode("utf-8")).hexdigest()
+    return sha256(text.encode("utf-8")).hexdigest()[:15]
 
 
 def generate_cookie(user_name: str, hashed_password: str) -> str:
@@ -49,7 +49,9 @@ def new_cookie(user_name: str, password: str) -> str:
         "expire_time": now_time + timedelta(
             seconds=config.cookie_expire_seconds
         ),
-        "uid": user_data["_id"],
+        "user": {
+            "id": user_data["_id"]
+        },
         "cookie": cookie
     })
 
@@ -57,7 +59,7 @@ def new_cookie(user_name: str, password: str) -> str:
 
 
 def check_cookie(cookie: str) -> bool:
-    cookie_data = cookie_data_db.find({"cookie": cookie})
+    cookie_data = cookie_data_db.find_one({"cookie": cookie})
     if not cookie_data:  # 没有对应的 Cookie
         return False
     else:
@@ -69,13 +71,17 @@ def check_cookie(cookie: str) -> bool:
             {"_id": cookie_data["_id"]},
             {"$set": cookie_data}
         )
-        return False
+        return True
 
 
 def expire_cookie(cookie: str) -> bool:
-    cookie_data = cookie_data_db.find({"cookie": cookie})
+    cookie_data = cookie_data_db.find_one({"cookie": cookie})
     if not cookie_data:  # 没有对应的 Cookie
         return False
     else:
         cookie_data_db.delete_one({"_id": cookie_data["_id"]})
         return True
+
+
+def get_uid_from_cookie(cookie: str) -> str:
+    return cookie_data_db.find_one({"cookie": cookie})["user"]["id"]

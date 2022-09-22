@@ -36,6 +36,6 @@ def get_module_info(base_path: str, module_name: str) -> Module:
 
 def get_all_modules_info(base_path: str) -> List[Module]:
     return [
-        get_module_info(base_path, x)
+        get_module_info(base_path, x.split(".")[0])
         for x in get_all_modules(base_path)
     ]
