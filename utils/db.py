@@ -19,6 +19,7 @@ def get_collection(collection_name: str):
 trade_data_db = db.trade_data
 user_data_db = db.user_data
 cookie_data_db = db.cookie_data
+access_log_db = db.access_log
 
 
 # 如果索引不存在，创建对应索引
