@@ -14,6 +14,7 @@ _DEFAULT_CONFIG = {
     },
     "base_path": "./app",
     "footer": "",
+    "cookie_expire_sencods": 3600,
     "db": {
         "host": "localhost",
         "port": 27017,
