@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "needaname"
+version = "0.1.0"
+description = ""
+authors = ["yezi <yehaowei20060411@qq.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pywebio = "^1.6.3"
+pymongo = "^4.2.0"
+PyYAML = "^6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+types-PyYAML = "^6.0.11"
+yapf = "^0.32.0"
+mypy = "^0.971"
+flake8 = "^5.0.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
