@@ -59,6 +59,9 @@ def new_cookie(user_name: str, password: str) -> str:
 
 
 def check_cookie(cookie: str) -> bool:
+    if not cookie:  # Cookie 字符串为空
+        return False
+
     cookie_data = cookie_data_db.find_one({"cookie": cookie})
     if not cookie_data:  # 没有对应的 Cookie
         return False
