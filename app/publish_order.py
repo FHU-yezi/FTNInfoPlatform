@@ -1,10 +1,12 @@
+from time import sleep
 from typing import Literal
 
 from pywebio.output import put_buttons, put_markdown, toast, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
 from utils.auth import check_cookie, get_uid_from_cookie, new_cookie
 from utils.db import trade_data_db, user_data_db
-from utils.page import close_page, get_cookie, set_cookie
+from utils.page import (close_page, get_base_url, get_cookie, jump_to,
+                        set_cookie)
 from utils.popup import login_popup
 from utils.time_helper import get_now_without_mileseconds
 from utils.widgets import toast_error_and_return, toast_warn_and_return
@@ -82,6 +84,9 @@ def on_publish_button_clicked() -> None:
                 on_cancel_button_clicked
             ]
         )
+
+    sleep(1)
+    jump_to(get_base_url() + "?app=your_orders")
 
 
 def on_cancel_button_clicked() -> None:
