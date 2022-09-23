@@ -1,10 +1,12 @@
-from pywebio.output import popup, put_button, close_popup
-from pywebio.pin import put_input, pin
-from utils.auth import login
-from utils.widgets import toast_error_and_return, toast_warn_and_return, toast
-from utils.callback import bind_enter_key_callback
 from time import sleep
 
+from pywebio.output import close_popup, popup, put_buttons
+from pywebio.pin import pin, put_input
+
+from utils.auth import login
+from utils.callback import bind_enter_key_callback
+from utils.page import get_base_url, jump_to
+from utils.widgets import toast, toast_error_and_return, toast_warn_and_return
 
 _login_finished: bool = False
 
@@ -15,7 +17,16 @@ def login_popup() -> None:
         content=[
             put_input("user_name", "text", label="用户名"),
             put_input("password", "password", label="密码"),
-            put_button("登录", onclick=on_login_button_clicked, color="success")
+            put_buttons(
+                buttons=[
+                    {"label": "登录", "value": "login", "color": "success"},
+                    {"label": "注册", "value": "signup"}
+                ],
+                onclick=[
+                    on_login_button_clicked,
+                    on_signup_button_clicked
+                ]
+            )
         ],
         size="large",
         closable=False
@@ -44,3 +55,7 @@ def on_login_button_clicked() -> None:
         _login_finished = True
     else:
         toast_error_and_return("用户名或密码错误")
+
+
+def on_signup_button_clicked() -> None:
+    jump_to(get_base_url() + "?app=signin")

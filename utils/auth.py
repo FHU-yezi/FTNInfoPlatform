@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from hashlib import sha256
 from time import time
+from utils.text_filter import has_banned_chars
 
 from utils.config import config
 from utils.db import cookie_data_db, user_data_db
@@ -26,6 +27,10 @@ def login(user_name: str, password: str) -> bool:
 
 
 def signup(user_name: str, password: str) -> None:
+    # TODO
+    if has_banned_chars(user_name) or has_banned_chars(password):
+        raise Exception("用户名或密码中含有不合法字符")
+
     if user_data_db.count_documents({"user_name": user_name}) != 0:
         raise ValueError("该用户已注册")
 
