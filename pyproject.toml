@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "FTNTrade"
+name = "FTNInfoPlatform"
 version = "0.1.0"
 description = "提供简书贝相关信息交流服务"
 authors = ["yezi <yehaowei20060411@qq.com>"]
