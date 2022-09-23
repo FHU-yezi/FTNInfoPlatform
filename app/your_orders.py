@@ -1,11 +1,13 @@
+from time import sleep
 from typing import Dict
 
-from pywebio.output import put_buttons, put_markdown
+from bson import ObjectId
+from pywebio.output import close_popup, popup, put_buttons, put_markdown, toast
 from pywebio.pin import pin
 from utils.auth import check_cookie, get_uid_from_cookie, new_cookie
 from utils.db import trade_data_db
 from utils.html import link
-from utils.page import get_base_url, get_cookie, set_cookie, jump_to
+from utils.page import get_base_url, get_cookie, jump_to, reload, set_cookie
 from utils.popup import login_popup
 
 NAME: str = "您的意向单"
@@ -14,27 +16,67 @@ VISIBILITY: bool = True
 uid: str = ""
 
 
+def on_buy_delete_confirmed():
+    delete_order(get_order_data(uid, "buy")["_id"])
+    toast("删除成功", color="success")
+    sleep(1)
+    reload()
+
+
+def on_sell_delete_confirmed():
+    delete_order(get_order_data(uid, "sell")["_id"])
+    toast("删除成功", color="success")
+    sleep(1)
+    reload()
+
+
 # TODO
 def on_buy_order_change_button_clicked():
     jump_to(get_base_url() + "?app=change_order"
             f"&order_id={str(get_order_data(uid, 'buy')['_id'])}")
 
 
-def on_buy_order_delete_button_clicked():
-    pass
-
-
 def on_sell_order_change_button_clicked():
-    pass
-
-
-def on_sell_order_delete_button_clicked():
     jump_to(get_base_url() + "?app=change_order"
             f"&order_id={str(get_order_data(uid, 'sell')['_id'])}")
 
 
+def on_buy_order_delete_button_clicked():
+    with popup("确认删除"):
+        put_markdown("确认要删除这条意向单吗？")
+        put_buttons(
+            buttons=[
+                {"label": "确认", "value": "confirm", "color": "warning"},
+                {"label": "取消", "value": "cancel"}
+            ],
+            onclick=[
+                on_buy_delete_confirmed,
+                close_popup
+            ]
+        )
+
+
+def on_sell_order_delete_button_clicked():
+    with popup("确认删除"):
+        put_markdown("确认要删除这条意向单吗？")
+        put_buttons(
+            buttons=[
+                {"label": "确认", "value": "confirm", "color": "warning"},
+                {"label": "取消", "value": "cancel"}
+            ],
+            onclick=[
+                on_sell_delete_confirmed,
+                close_popup
+            ]
+        )
+
+
 def get_order_data(uid: str, order_type: str) -> Dict:
     return trade_data_db.find_one({"user.id": uid, "order.type": order_type})
+
+
+def delete_order(order_id: str) -> None:
+    trade_data_db.delete_one({"_id": ObjectId(order_id)})
 
 
 def your_orders() -> None:
@@ -72,7 +114,6 @@ def your_orders() -> None:
                 on_buy_order_delete_button_clicked
             ]
         )
-
 
     sell_order_data = get_order_data(uid, "sell")
     if not sell_order_data:

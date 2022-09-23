@@ -40,6 +40,10 @@ def jump_to(url: str) -> None:
     run_js(f"window.location.href = '{url}'")
 
 
+def reload() -> None:
+    run_js("location.reload()")
+
+
 def close_page() -> None:
     run_js("window.close()")
 

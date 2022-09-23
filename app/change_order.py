@@ -1,7 +1,7 @@
 from typing import Dict
 
 from bson import ObjectId
-from pywebio.output import put_buttons, put_markdown, toast
+from pywebio.output import put_buttons, put_markdown, toast, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
 from utils.auth import check_cookie, get_uid_from_cookie, new_cookie
 from utils.db import trade_data_db
@@ -62,6 +62,19 @@ def on_publish_button_clicked() -> None:
     )
 
     toast("交易单更新成功！", color="success")
+    # 将按钮设为不可用
+    # TODO
+    with use_scope("buttons", clear=True):
+        put_buttons(
+            buttons=[
+                {"label": "已更新", "value": "publish", "color": "success", "disabled": True},
+                {"label": "取消", "value": "cancel"}
+            ],
+            onclick=[
+                on_publish_button_clicked,
+                on_cancel_button_clicked
+            ]
+        )
 
 
 def on_cancel_button_clicked() -> None:
@@ -101,16 +114,17 @@ def change_order() -> None:
               value=order_data["order"]["amount"])
     put_input("total_price", "number", label="总价",
               value=order_data["order"]["total_price"], readonly=True)
-    put_buttons(
-        buttons=[
-            {"label": "发布", "value": "publish", "color": "success"},
-            {"label": "取消", "value": "cancel"}
-        ],
-        onclick=[
-            on_publish_button_clicked,
-            on_cancel_button_clicked
-        ]
-    )
+    with use_scope("buttons", clear=True):
+        put_buttons(
+            buttons=[
+                {"label": "更新", "value": "publish", "color": "success"},
+                {"label": "取消", "value": "cancel"}
+            ],
+            onclick=[
+                on_publish_button_clicked,
+                on_cancel_button_clicked
+            ]
+        )
 
     pin_on_change("price", onchange=on_price_or_amount_input_changed)
     pin_on_change("amount", onchange=on_price_or_amount_input_changed)
