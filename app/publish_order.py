@@ -12,6 +12,7 @@ from utils.widgets import toast_error_and_return, toast_warn_and_return
 
 NAME: str = "发布意向单"
 DESC: str = "发布交易意向"
+VISIBILITY: bool = True
 
 
 def is_already_has_order(uid: str, order_type: str) -> bool:

@@ -10,6 +10,7 @@ from utils.popup import login_popup
 
 NAME: str = "您的意向单"
 DESC: str = "查看并修改您的意向单"
+VISIBILITY: bool = True
 uid: str = ""
 
 

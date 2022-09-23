@@ -10,6 +10,7 @@ class Module:
     page_func: Callable[[], None]
     page_name: str
     page_desc: str
+    page_visibility: str
 
 
 def get_all_modules(base_path: str) -> List[str]:
@@ -25,12 +26,14 @@ def get_module_info(base_path: str, module_name: str) -> Module:
     page_func: Callable[[], None] = getattr(module_obj, module_name)  # 页面函数名与模块名相同
     page_name: str = getattr(module_obj, "NAME")
     page_desc: str = getattr(module_obj, "DESC")
+    page_visibility: bool = getattr(module_obj, "VISIBILITY")
 
     return Module(
         page_func_name=module_name,
         page_func=page_func,
         page_name=page_name,
-        page_desc=page_desc
+        page_desc=page_desc,
+        page_visibility=page_visibility
     )
 
 

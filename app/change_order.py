@@ -11,6 +11,7 @@ from utils.widgets import toast_error_and_return, toast_warn_and_return
 
 NAME: str = "修改意向单"
 DESC: str = "修改交易意向"
+VISIBILITY: bool = False
 uid: str = ""  # TODO
 
 

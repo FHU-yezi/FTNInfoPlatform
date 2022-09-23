@@ -27,7 +27,7 @@ def index() -> None:
 
     content: str = ""
     for module in modules_list:
-        if module.page_func_name == "index":  # 首页
+        if not module.page_visibility:  # 模块被设为首页不可见
             continue
         content += (f"**{module.page_name}**   "
                     f"{get_jump_link(get_base_url(), module.page_func_name)}\n\n"
@@ -43,7 +43,8 @@ modules_list.append(Module(
     page_func_name="index",
     page_func=index,
     page_name="取个名字",
-    page_desc="我们需要一个名字"
+    page_desc="我们需要一个名字",
+    page_visibility=False
 ))
 patched_modules_list: List[Module] = [patch_all(module) for module in modules_list]
 func_list: List[Callable[[], None]] = [x.page_func for x in patched_modules_list]
