@@ -18,7 +18,7 @@ _DEFAULT_CONFIG = {
     "db": {
         "host": "localhost",
         "port": 27017,
-        "main_database": "NeedAName"
+        "main_database": "FTNTradeData"
     },
     "log": {
         "minimum_record_level": "DEBUG",

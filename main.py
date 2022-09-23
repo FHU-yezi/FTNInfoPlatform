@@ -18,7 +18,7 @@ def get_jump_link(base_url: str, module_name: str) -> str:
 
 def index() -> None:
     put_markdown(f"""
-    # 取个名字
+    # 简书贝信息交流中心
 
     版本：{config.version}
     """)
@@ -42,8 +42,8 @@ def index() -> None:
 modules_list.append(Module(
     page_func_name="index",
     page_func=index,
-    page_name="取个名字",
-    page_desc="我们需要一个名字",
+    page_name="简书贝信息交流中心",
+    page_desc="提供简书贝相关信息交流服务",
     page_visibility=False
 ))
 patched_modules_list: List[Module] = [patch_all(module) for module in modules_list]
