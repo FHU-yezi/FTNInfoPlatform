@@ -31,14 +31,54 @@ def on_sell_delete_confirmed():
 
 
 # TODO
-def on_buy_order_change_button_clicked():
-    jump_to(get_base_url() + "?app=change_order"
+def on_buy_order_change_price_button_clicked():
+    jump_to(get_base_url() + "?app=change_price"
             f"&order_id={str(get_order_data(uid, 'buy')['_id'])}")
 
 
-def on_sell_order_change_button_clicked():
+def on_buy_order_change_traded_button_clicked():
+    jump_to(get_base_url() + "?app=change_traded"
+            f"&order_id={str(get_order_data(uid, 'buy')['_id'])}")
+
+
+def on_sell_order_change_price_button_clicked():
     jump_to(get_base_url() + "?app=change_order"
             f"&order_id={str(get_order_data(uid, 'sell')['_id'])}")
+
+
+def on_sell_order_change_traded_button_clicked():
+    jump_to(get_base_url() + "?app=change_order"
+            f"&order_id={str(get_order_data(uid, 'sell')['_id'])}")
+
+
+def on_buy_order_delete_button_clicked():
+    with popup("确认删除"):
+        put_markdown("确认要删除这条意向单吗？")
+        put_buttons(
+            buttons=[
+                {"label": "确认", "value": "confirm", "color": "warning"},
+                {"label": "取消", "value": "cancel"}
+            ],
+            onclick=[
+                on_buy_delete_confirmed,
+                close_popup
+            ]
+        )
+
+
+def on_sell_order_delete_button_clicked():
+    with popup("确认删除"):
+        put_markdown("确认要删除这条意向单吗？")
+        put_buttons(
+            buttons=[
+                {"label": "确认", "value": "confirm", "color": "warning"},
+                {"label": "取消", "value": "cancel"}
+            ],
+            onclick=[
+                on_sell_delete_confirmed,
+                close_popup
+            ]
+        )
 
 
 def on_buy_order_delete_button_clicked():
@@ -100,17 +140,21 @@ def my_orders() -> None:
         ## 买单
 
         发布时间：{buy_order_data['publish_time']}
-        价格：{buy_order_data['order']['price']}
-        数量：{buy_order_data['order']['amount']}
-        总价：{buy_order_data['order']['total_price']}
+        单价：{buy_order_data['order']['price']['single']}
+        总量：{buy_order_data['order']['amount']['total']}
+        已交易：{buy_order_data['order']['amount']['traded']}
+        剩余：{buy_order_data['order']['amount']['remaining']}
+        总价：{buy_order_data['order']['price']['total']}
         """, sanitize=False)
         put_buttons(
             buttons=[
-                {"label": "修改", "value": "publish", "color": "success"},
+                {"label": "修改价格", "value": "change_price", "color": "success"},
+                {"label": "修改已交易数量", "value": "change_traded", "color": "success"},
                 {"label": "删除", "value": "warning"}
             ],
             onclick=[
-                on_buy_order_change_button_clicked,
+                on_buy_order_change_price_button_clicked,
+                on_buy_order_change_traded_button_clicked,
                 on_buy_order_delete_button_clicked
             ]
         )
@@ -127,17 +171,21 @@ def my_orders() -> None:
         ## 卖单
 
         发布时间：{sell_order_data['publish_time']}
-        价格：{sell_order_data['order']['price']}
-        数量：{sell_order_data['order']['amount']}
-        总价：{sell_order_data['order']['total_price']}
+        单价：{sell_order_data['order']['price']['single']}
+        总量：{sell_order_data['order']['amount']['total']}
+        已交易：{sell_order_data['order']['amount']['traded']}
+        剩余：{sell_order_data['order']['amount']['remaining']}
+        总价：{sell_order_data['order']['price']['total']}
         """, sanitize=False)
         put_buttons(
             buttons=[
-                {"label": "修改", "value": "publish", "color": "success"},
+                {"label": "修改价格", "value": "change_price", "color": "success"},
+                {"label": "修改已交易数量", "value": "change_traded", "color": "success"},
                 {"label": "删除", "value": "warning"}
             ],
             onclick=[
-                on_sell_order_change_button_clicked,
+                on_sell_order_change_price_button_clicked,
+                on_sell_order_change_traded_button_clicked,
                 on_sell_order_delete_button_clicked
             ]
         )

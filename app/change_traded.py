@@ -11,8 +11,8 @@ from utils.page import (close_page, get_base_url, get_cookie, get_url_params,
 from utils.popup import login_popup
 from utils.widgets import toast_error_and_return, toast_warn_and_return
 
-NAME: str = "修改意向单"
-DESC: str = "修改交易意向"
+NAME: str = "修改已交易数量"
+DESC: str = "修改意向单的已交易数量"
 VISIBILITY: bool = False
 uid: str = ""  # TODO
 
@@ -21,41 +21,55 @@ def get_order_data(order_id: str) -> Dict:
     return trade_data_db.find_one({"_id": ObjectId(order_id)})
 
 
-def on_price_or_amount_input_changed(_) -> None:
-    price: float = pin.price
-    amount: float = pin.amount
+def on_traded_amount_input_changed(_) -> None:
+    traded_amount: int = pin.traded_amount
+    total_amount: int = pin.total_amount
 
-    if not price or not amount:
+    if traded_amount is None:
         return
 
-    if not 0 < price <= 3 or not 0 < amount <= 10 ** 8:
+    if traded_amount < 0:
         return
 
-    total_price: float = round(price * amount, 2)
-    pin_update("total_price", value=total_price)
+    if traded_amount > total_amount:
+        return
+
+    remaining_amount: int = total_amount - traded_amount
+    pin_update("remaining_amount", value=remaining_amount)
 
 
-def on_publish_button_clicked() -> None:
+def on_change_button_clicked() -> None:
     global uid
     order_id: str = get_url_params()["order_id"]
     price: float = pin.price
-    amount: int = pin.amount
+    total_amount: int = pin.total_amount
+    traded_amount: int = pin.traded_amount
+    remaining_amount: int = pin.remaining_amount
     # TODO
-    total_price: float = round(price * amount, 2)
+    total_price: float = round(price * total_amount, 2)
 
-    if not price or not amount:
-        toast_warn_and_return("请输入价格和数量")
+    if not traded_amount:
+        toast_warn_and_return("请输入已交易数量")
 
-    if price <= 0 or amount <= 0:
-        toast_error_and_return("价格和数量必须大于 0")
+    if traded_amount < 0:
+        toast_error_and_return("已交易数量必须大于 0")
+
+    if traded_amount > total_amount:
+        toast_error_and_return("已交易数量必须小于总量")
 
     # TODO
     order_data = get_order_data(order_id)
     order_data["order"] = {
         "type": order_data["order"]["type"],
-        "price": price,
-        "amount": amount,
-        "total_price": total_price
+        "price": {
+            "single": price,
+            "total": total_price
+        },
+        "amount": {
+            "total": total_amount,
+            "traded": traded_amount,
+            "remaining": remaining_amount
+        }
     }
 
     trade_data_db.update_one(
@@ -63,7 +77,7 @@ def on_publish_button_clicked() -> None:
         {"$set": order_data}
     )
 
-    toast("交易单更新成功！", color="success")
+    toast("更新成功", color="success")
     # 将按钮设为不可用
     # TODO
     with use_scope("buttons", clear=True):
@@ -73,7 +87,7 @@ def on_publish_button_clicked() -> None:
                 {"label": "取消", "value": "cancel"}
             ],
             onclick=[
-                on_publish_button_clicked,
+                on_change_button_clicked,
                 on_cancel_button_clicked
             ]
         )
@@ -85,7 +99,7 @@ def on_cancel_button_clicked() -> None:
     close_page()
 
 
-def change_order() -> None:
+def change_traded() -> None:
     url_params = get_url_params()
     order_id: str = url_params.get("order_id")
     if not order_id:
@@ -95,7 +109,7 @@ def change_order() -> None:
     if not order_data:
         toast_error_and_return("请求参数错误")
 
-    put_markdown("# 修改意向单")
+    put_markdown("# 修改意向单价格")
     if not check_cookie(get_cookie()):
         login_popup()
         set_cookie(new_cookie(pin.user_name, pin.password))
@@ -113,11 +127,15 @@ def change_order() -> None:
               value=("买" if order_data["order"]["type"] == "buy" else "卖"),
               readonly=True)
     put_input("price", "float", label="单价",
-              value=order_data["order"]["price"])
-    put_input("amount", "number", label="数量",
-              value=order_data["order"]["amount"])
+              value=order_data["order"]["price"]["single"], readonly=True)
+    put_input("total_amount", "number", label="总量",
+              value=order_data["order"]["amount"]["total"], readonly=True)
+    put_input("traded_amount", "number", label="已交易",
+              value=order_data["order"]["amount"]["traded"])
+    put_input("remaining_amount", "number", label="剩余",
+              value=order_data["order"]["amount"]["remaining"], readonly=True)
     put_input("total_price", "number", label="总价",
-              value=order_data["order"]["total_price"], readonly=True)
+              value=order_data["order"]["price"]["total"], readonly=True)
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
@@ -125,10 +143,9 @@ def change_order() -> None:
                 {"label": "取消", "value": "cancel"}
             ],
             onclick=[
-                on_publish_button_clicked,
+                on_change_button_clicked,
                 on_cancel_button_clicked
             ]
         )
 
-    pin_on_change("price", onchange=on_price_or_amount_input_changed)
-    pin_on_change("amount", onchange=on_price_or_amount_input_changed)
+        pin_on_change("traded_amount", onchange=on_traded_amount_input_changed)
