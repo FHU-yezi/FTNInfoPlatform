@@ -86,7 +86,7 @@ def on_publish_button_clicked() -> None:
         )
 
     sleep(1)
-    jump_to(get_base_url() + "?app=your_orders")
+    jump_to(get_base_url() + "?app=my_orders")
 
 
 def on_cancel_button_clicked() -> None:

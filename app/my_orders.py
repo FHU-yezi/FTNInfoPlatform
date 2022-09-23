@@ -10,8 +10,8 @@ from utils.html import link
 from utils.page import get_base_url, get_cookie, jump_to, reload, set_cookie
 from utils.popup import login_popup
 
-NAME: str = "您的意向单"
-DESC: str = "查看并修改您的意向单"
+NAME: str = "我的意向单"
+DESC: str = "查看并修改自己的意向单"
 VISIBILITY: bool = True
 uid: str = ""
 
@@ -79,8 +79,8 @@ def delete_order(order_id: str) -> None:
     trade_data_db.delete_one({"_id": ObjectId(order_id)})
 
 
-def your_orders() -> None:
-    put_markdown("# 您的意向单")
+def my_orders() -> None:
+    put_markdown("# 我的意向单")
     if not check_cookie(get_cookie()):
         login_popup()
         set_cookie(new_cookie(pin.user_name, pin.password))
