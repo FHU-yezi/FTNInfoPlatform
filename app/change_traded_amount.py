@@ -10,8 +10,8 @@ from utils.data.token import create_token, verify_token
 from utils.db import order_data_db
 from utils.exceptions import (AmountIlliegalError, OrderIDNotExistError,
                               TokenNotExistError)
-from utils.page import (close_page, get_base_url, get_token, get_url_params,
-                        jump_to, set_token)
+from utils.page import (close_page, get_token, get_url_params,
+                        get_url_to_module, jump_to, set_token)
 from utils.popup import login_popup
 from utils.widgets import toast_error_and_return, toast_success
 
@@ -62,7 +62,7 @@ def on_change_button_clicked(order_id: str) -> None:
                 ]
             )
         sleep(1)
-        jump_to(get_base_url() + "?app=my_orders")
+        jump_to(get_url_to_module("my_orders"))
 
 
 def on_cancel_button_clicked() -> None:

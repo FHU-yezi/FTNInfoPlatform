@@ -7,12 +7,16 @@ def set_footer(html: str) -> None:
     run_js(f"$('footer').html('{html}')")
 
 
+def get_base_url() -> str:
+    return eval_js("window.location.href").split("?")[0]
+
+
 def get_current_page_url() -> str:
     return "http://" + eval_js("window.location.href").split("/")[-2]
 
 
-def get_base_url() -> str:
-    return eval_js("window.location.href").split("?")[0]
+def get_url_to_module(module_name: str) -> str:
+    return get_base_url() + f"?app={module_name}"
 
 
 def get_chart_width() -> int:

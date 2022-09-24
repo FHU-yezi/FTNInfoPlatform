@@ -7,7 +7,8 @@ from utils.data.order import create_order, get_FTN_avagae_price
 from utils.data.token import create_token, verify_token
 from utils.exceptions import (AmountIlliegalError, DuplicatedOrderError,
                               PriceIlliegalError, TokenNotExistError)
-from utils.page import close_page, get_base_url, get_token, jump_to, set_token
+from utils.page import (close_page, get_token, get_url_to_module, jump_to,
+                        set_token)
 from utils.popup import login_popup
 from utils.widgets import (toast_error_and_return, toast_success,
                            toast_warn_and_return)
@@ -71,7 +72,7 @@ def on_publish_button_clicked(uid: str) -> None:
             )
 
         sleep(1)
-        jump_to(get_base_url() + "?app=my_orders")
+        jump_to(get_url_to_module("my_orders"))
 
 
 def on_cancel_button_clicked() -> None:

@@ -6,14 +6,14 @@ from pywebio.output import put_markdown
 from utils.config import config
 from utils.html import link
 from utils.module_finder import Module, get_all_modules_info
-from utils.page import get_base_url
+from utils.page import get_url_to_module
 from utils.patch import patch_all
 
 modules_list = get_all_modules_info(config.base_path)
 
 
-def get_jump_link(base_url: str, module_name: str) -> str:
-    return link("点击跳转>>", f"{base_url}?app={module_name}", new_window=True)
+def get_jump_link(module_name: str) -> str:
+    return link("点击跳转>>", get_url_to_module(module_name), new_window=True)
 
 
 def index() -> None:
@@ -30,7 +30,7 @@ def index() -> None:
         if not module.page_visibility:  # 模块被设为首页不可见
             continue
         content += (f"**{module.page_name}**   "
-                    f"{get_jump_link(get_base_url(), module.page_func_name)}\n\n"
+                    f"{get_jump_link(module.page_func_name)}\n\n"
                     f"{module.page_desc}\n\n")
 
     # 必须传入 sanitize=False 禁用 XSS 攻击防护

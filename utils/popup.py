@@ -7,7 +7,7 @@ from utils.callback import bind_enter_key_callback
 from utils.data.user import log_in
 from utils.exceptions import (PasswordIlliegalError, UsernameIlliegalError,
                               UsernameOrPasswordWrongError)
-from utils.page import get_base_url, jump_to
+from utils.page import get_url_to_module, jump_to
 from utils.widgets import toast, toast_error_and_return, toast_warn_and_return
 
 _login_finished: bool = False
@@ -66,4 +66,4 @@ def on_login_button_clicked() -> None:
 
 
 def on_signup_button_clicked() -> None:
-    jump_to(get_base_url() + "?app=signin")
+    jump_to(get_url_to_module("signin"))
