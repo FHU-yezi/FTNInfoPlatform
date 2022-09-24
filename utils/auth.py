@@ -92,4 +92,8 @@ def expire_cookie(cookie: str) -> bool:
 
 
 def get_uid_from_cookie(cookie: str) -> str:
-    return cookie_data_db.find_one({"cookie": cookie})["user"]["id"]
+    result = cookie_data_db.find_one({"cookie": cookie})
+    if not result:
+        return ""
+    else:
+        return result["user"]["id"]
