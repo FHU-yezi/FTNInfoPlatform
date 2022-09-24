@@ -38,12 +38,12 @@ def on_buy_order_change_traded_amount_button_clicked(order_id: str):
 
 
 def on_sell_order_change_unit_price_button_clicked(order_id: str):
-    jump_to(get_base_url() + "?app=change_order"
+    jump_to(get_base_url() + "?app=change_unit_price"
             f"&order_id={order_id}")
 
 
 def on_sell_order_change_traded_amount_button_clicked(order_id: str):
-    jump_to(get_base_url() + "?app=change_order"
+    jump_to(get_base_url() + "?app=change_traded_amount"
             f"&order_id={order_id}")
 
 
