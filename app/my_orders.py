@@ -109,7 +109,7 @@ def my_orders() -> None:
             buttons=[
                 {"label": "修改价格", "value": "change_unit_price", "color": "success"},
                 {"label": "修改已交易数量", "value": "change_traded_amount", "color": "success"},
-                {"label": "删除", "value": "warning"}
+                {"label": "删除", "value": "delete", "color": "warning"}
             ],
             onclick=[
                 lambda: on_buy_order_change_unit_price_button_clicked(buy_order_id),
@@ -141,7 +141,7 @@ def my_orders() -> None:
             buttons=[
                 {"label": "修改价格", "value": "change_unit_price", "color": "success"},
                 {"label": "修改已交易数量", "value": "change_traded_amount", "color": "success"},
-                {"label": "删除", "value": "warning"}
+                {"label": "删除", "value": "delete", "color": "warning"}
             ],
             onclick=[
                 lambda: on_sell_order_change_unit_price_button_clicked(sell_order_id),
