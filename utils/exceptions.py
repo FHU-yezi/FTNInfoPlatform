@@ -1,46 +1,50 @@
-class UsernameIlliegalError:
+class UsernameIlliegalError(Exception):
     pass
 
 
-class PasswordIlliegalError:
+class PasswordIlliegalError(Exception):
     pass
 
 
-class WeakPasswordError:
+class PasswordNotEqualError(Exception):
     pass
 
 
-class DuplicatedUsernameError:
+class WeakPasswordError(Exception):
     pass
 
 
-class UsernameOrPasswordWrongError:
+class DuplicatedUsernameError(Exception):
     pass
 
 
-class UIDNotExistError:
+class UsernameOrPasswordWrongError(Exception):
     pass
 
 
-class TokenNotExistError:
+class UIDNotExistError(Exception):
     pass
 
 
-class OrderIDNotExistError:
+class TokenNotExistError(Exception):
     pass
 
 
-class PriceIlliegalError:
+class OrderIDNotExistError(Exception):
     pass
 
 
-class AmountIlliegalError:
+class PriceIlliegalError(Exception):
     pass
 
 
-class DuplicatedOrderError:
+class AmountIlliegalError(Exception):
     pass
 
 
-class OrderStatusError:
+class DuplicatedOrderError(Exception):
+    pass
+
+
+class OrderStatusError(Exception):
     pass

@@ -1,6 +1,5 @@
-from typing import Set
 from re import compile
-
+from typing import Set
 
 BANNED_CHARS: Set[str] = {
     " ",
@@ -20,7 +19,7 @@ USER_NAME_ILLIEGAL_CHARS: Set[str] = {
     ")", "-", "=", "：",
     "；", "、", "￥"
 }
-# 至少为八个字符，包含一个字母和一个数字
+# 长度至少为 8 位，至少包含 1 个字母和 1 个数字
 PASSWORD_RE = compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$")
 
 

@@ -24,16 +24,17 @@ def get_chart_height() -> int:
     return int(get_chart_width() / 1.5)
 
 
-def get_cookie() -> Optional[str]:
+def get_token() -> Optional[str]:
     cookie_str: str = eval_js("document.cookie")
     if not cookie_str:  # Cookie 字符串为空
-        return ""
+        return None
     cookie_dict = dict([x.split("=") for x in cookie_str.split("; ")])
-    return cookie_dict["cookie"]
+    # Token 有可能为 None，这一边界情况在 Token 校验函数中有对应处理逻辑
+    return cookie_dict.get("token")
 
 
-def set_cookie(value: str) -> None:
-    run_js(f'document.cookie = "cookie={value};"')
+def set_token(value: str) -> None:
+    run_js(f'document.cookie = "token={value};"')
 
 
 def jump_to(url: str) -> None:
@@ -49,10 +50,10 @@ def close_page() -> None:
 
 
 def get_url_params() -> Dict[str, str]:
-    cookie_str = eval_js("window.location.href")
+    url = eval_js("window.location.href")
     result: Dict[str, str] = dict([
         x.split("=")
-        for x in cookie_str.split("?")[1].split("&")
+        for x in url.split("?")[1].split("&")
     ])
     if result.get("app"):  # 去除子页面参数
         del result["app"]

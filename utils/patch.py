@@ -15,7 +15,7 @@ def patch_add_html_name_desc(func: Callable[[], None], module_obj: Module) -> Ca
     return func
 
 
-def patch_add_footer(func: Callable[[], None], module_obj: Module) -> Callable[[], None]:
+def patch_add_footer(func: Callable[[], None], _: Module) -> Callable[[], None]:
     @wraps(func)
     def footer_patched() -> None:
         func()
@@ -32,9 +32,10 @@ def patch_record_access(func: Callable[[], None], module_obj: Module) -> Callabl
         from pywebio.session import info
 
         from utils.log import access_logger
-        from utils.page import get_cookie
+        from utils.page import get_token
 
-        access_logger.log_from_info_obj(module_obj.page_func_name, info, get_cookie())
+        access_logger.log_from_info_obj(module_obj.page_func_name,
+                                        info, get_token())
 
         func()
 

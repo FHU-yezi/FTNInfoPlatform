@@ -3,7 +3,8 @@ from typing import Dict
 from bson import ObjectId
 from utils.db import user_data_db
 from utils.exceptions import (DuplicatedUsernameError, PasswordIlliegalError,
-                              UIDNotExistError, UsernameIlliegalError,
+                              PasswordNotEqualError, UIDNotExistError,
+                              UsernameIlliegalError,
                               UsernameOrPasswordWrongError, WeakPasswordError)
 from utils.hash import get_hash
 from utils.text_filter import (is_illiegal_password, is_illiegal_user_name,
@@ -22,8 +23,10 @@ def get_user_data_from_uid(uid: str) -> Dict:
     return result
 
 
-def sign_up(user_name: str, password: str, admin_permissions_level: int,
-            user_permissions_level: int) -> None:
+def sign_up(user_name: str, password: str, password_again: str,
+            admin_permissions_level: int, user_permissions_level: int) -> None:
+    if password != password_again:
+        raise PasswordNotEqualError("两次输入的密码不一致")
     if not 0 <= admin_permissions_level <= 5:
         raise TypeError("参数 admin_permissions_level 必须介于 0 - 5 之间")
     if not 0 <= user_permissions_level <= 5:
@@ -63,7 +66,7 @@ def log_in(user_name: str, password: str) -> str:
         raise PasswordIlliegalError("密码不能为空")
 
     hashed_password: str = get_hash(password)
-    user_data = user_data_db.count_documents({
+    user_data = user_data_db.find_one({
         "user_name": user_name, "password": hashed_password
     })
     if not user_data:  # 未查询到相应记录

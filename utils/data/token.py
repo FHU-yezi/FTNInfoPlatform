@@ -34,7 +34,7 @@ def create_token(uid: str) -> str:
     token_data_db.insert_one({
         "create_time": now_time,
         "expire_time": get_datetime_after_seconds(
-            now_time, seconds=config.expire_seconds
+            now_time, offset=config.token_expire_seconds
         ),
         "user": {
             "id": uid
@@ -44,18 +44,18 @@ def create_token(uid: str) -> str:
     return token
 
 
-def verify_cookie(token: str) -> str:
-    if not token:
+def verify_token(token: str) -> str:
+    if token is None:
         raise TokenNotExistError("Token 不能为空")
 
-    cookie_data = token_data_db.find_one({"token": token})
-    if not cookie_data:
+    token_data = token_data_db.find_one({"token": token})
+    if not token_data:
         raise TokenNotExistError("Token 不存在或已过期")
-    return cookie_data["user"]["id"]
+    return token_data["user"]["id"]
 
 
-def expire_cookie(token: str) -> None:
-    if not token:
+def expire_token(token: str) -> None:
+    if token is None:
         raise TokenNotExistError("Token 不能为空")
 
     if not is_token_exist(token):

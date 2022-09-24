@@ -1,57 +1,53 @@
 from time import sleep
-from typing import Dict
 
-from bson import ObjectId
 from pywebio.output import close_popup, popup, put_buttons, put_markdown, toast
-from pywebio.pin import pin
-from utils.auth import check_cookie, get_uid_from_cookie, new_cookie
-from utils.db import trade_data_db
+from utils.data.order import delete_order, get_my_active_order
+from utils.data.token import create_token, verify_token
+from utils.exceptions import TokenNotExistError
 from utils.html import link
-from utils.page import get_base_url, get_cookie, jump_to, reload, set_cookie
+from utils.page import get_base_url, get_token, jump_to, reload, set_token
 from utils.popup import login_popup
 
 NAME: str = "我的意向单"
 DESC: str = "查看并修改自己的意向单"
 VISIBILITY: bool = True
-uid: str = ""
 
 
-def on_buy_delete_confirmed():
-    delete_order(get_order_data(uid, "buy")["_id"])
+def on_buy_delete_confirmed(order_id: str):
+    delete_order(order_id)
     toast("删除成功", color="success")
     sleep(1)
     reload()
 
 
-def on_sell_delete_confirmed():
-    delete_order(get_order_data(uid, "sell")["_id"])
+def on_sell_delete_confirmed(order_id: str):
+    delete_order(order_id)
     toast("删除成功", color="success")
     sleep(1)
     reload()
 
 
-# TODO
-def on_buy_order_change_price_button_clicked():
-    jump_to(get_base_url() + "?app=change_price"
-            f"&order_id={str(get_order_data(uid, 'buy')['_id'])}")
+def on_buy_order_change_unit_price_button_clicked(order_id: str):
+    jump_to(get_base_url() + "?app=change_unit_price"
+            f"&order_id={order_id}")
 
 
-def on_buy_order_change_traded_button_clicked():
-    jump_to(get_base_url() + "?app=change_traded"
-            f"&order_id={str(get_order_data(uid, 'buy')['_id'])}")
+def on_buy_order_change_traded_amount_button_clicked(order_id: str):
+    jump_to(get_base_url() + "?app=change_traded_amount"
+            f"&order_id={order_id}")
 
 
-def on_sell_order_change_price_button_clicked():
+def on_sell_order_change_unit_price_button_clicked(order_id: str):
     jump_to(get_base_url() + "?app=change_order"
-            f"&order_id={str(get_order_data(uid, 'sell')['_id'])}")
+            f"&order_id={order_id}")
 
 
-def on_sell_order_change_traded_button_clicked():
+def on_sell_order_change_traded_amount_button_clicked(order_id: str):
     jump_to(get_base_url() + "?app=change_order"
-            f"&order_id={str(get_order_data(uid, 'sell')['_id'])}")
+            f"&order_id={order_id}")
 
 
-def on_buy_order_delete_button_clicked():
+def on_buy_order_delete_button_clicked(order_id: str):
     with popup("确认删除"):
         put_markdown("确认要删除这条意向单吗？")
         put_buttons(
@@ -60,13 +56,13 @@ def on_buy_order_delete_button_clicked():
                 {"label": "取消", "value": "cancel"}
             ],
             onclick=[
-                on_buy_delete_confirmed,
+                lambda: on_buy_delete_confirmed(order_id),
                 close_popup
             ]
         )
 
 
-def on_sell_order_delete_button_clicked():
+def on_sell_order_delete_button_clicked(order_id: str):
     with popup("确认删除"):
         put_markdown("确认要删除这条意向单吗？")
         put_buttons(
@@ -75,60 +71,22 @@ def on_sell_order_delete_button_clicked():
                 {"label": "取消", "value": "cancel"}
             ],
             onclick=[
-                on_sell_delete_confirmed,
+                lambda: on_sell_delete_confirmed(order_id),
                 close_popup
             ]
         )
-
-
-def on_buy_order_delete_button_clicked():
-    with popup("确认删除"):
-        put_markdown("确认要删除这条意向单吗？")
-        put_buttons(
-            buttons=[
-                {"label": "确认", "value": "confirm", "color": "warning"},
-                {"label": "取消", "value": "cancel"}
-            ],
-            onclick=[
-                on_buy_delete_confirmed,
-                close_popup
-            ]
-        )
-
-
-def on_sell_order_delete_button_clicked():
-    with popup("确认删除"):
-        put_markdown("确认要删除这条意向单吗？")
-        put_buttons(
-            buttons=[
-                {"label": "确认", "value": "confirm", "color": "warning"},
-                {"label": "取消", "value": "cancel"}
-            ],
-            onclick=[
-                on_sell_delete_confirmed,
-                close_popup
-            ]
-        )
-
-
-def get_order_data(uid: str, order_type: str) -> Dict:
-    return trade_data_db.find_one({"user.id": uid, "order.type": order_type})
-
-
-def delete_order(order_id: str) -> None:
-    trade_data_db.delete_one({"_id": ObjectId(order_id)})
 
 
 def my_orders() -> None:
+    try:
+        uid = verify_token(get_token())
+    except TokenNotExistError:
+        uid = login_popup()
+        set_token(create_token(uid))
+
     put_markdown("# 我的意向单")
-    if not check_cookie(get_cookie()):
-        login_popup()
-        set_cookie(new_cookie(pin.user_name, pin.password))
 
-    global uid
-    uid = get_uid_from_cookie(get_cookie())
-
-    buy_order_data = get_order_data(uid, "buy")
+    buy_order_data = get_my_active_order(uid, "buy")
     if not buy_order_data:
         put_markdown(f"""
         ## 买单
@@ -136,11 +94,12 @@ def my_orders() -> None:
         您目前没有买单，{link("去发布>>>", get_base_url() + "?app=publish_order", new_window=True)}
         """, sanitize=False)
     else:
+        buy_order_id = str(buy_order_data["_id"])
         put_markdown(f"""
         ## 买单
 
         发布时间：{buy_order_data['publish_time']}
-        单价：{buy_order_data['order']['price']['single']}
+        单价：{buy_order_data['order']['price']['unit']}
         总量：{buy_order_data['order']['amount']['total']}
         已交易：{buy_order_data['order']['amount']['traded']}
         剩余：{buy_order_data['order']['amount']['remaining']}
@@ -148,18 +107,18 @@ def my_orders() -> None:
         """, sanitize=False)
         put_buttons(
             buttons=[
-                {"label": "修改价格", "value": "change_price", "color": "success"},
-                {"label": "修改已交易数量", "value": "change_traded", "color": "success"},
+                {"label": "修改价格", "value": "change_unit_price", "color": "success"},
+                {"label": "修改已交易数量", "value": "change_traded_amount", "color": "success"},
                 {"label": "删除", "value": "warning"}
             ],
             onclick=[
-                on_buy_order_change_price_button_clicked,
-                on_buy_order_change_traded_button_clicked,
-                on_buy_order_delete_button_clicked
+                lambda: on_buy_order_change_unit_price_button_clicked(buy_order_id),
+                lambda: on_buy_order_change_traded_amount_button_clicked(buy_order_id),
+                lambda: on_buy_order_delete_button_clicked(buy_order_id)
             ]
         )
 
-    sell_order_data = get_order_data(uid, "sell")
+    sell_order_data = get_my_active_order(uid, "sell")
     if not sell_order_data:
         put_markdown(f"""
         ## 卖单
@@ -167,11 +126,12 @@ def my_orders() -> None:
         您目前没有卖单，{link("去发布>>>", get_base_url() + "?app=publish_order", new_window=True)}
         """, sanitize=False)
     else:
+        sell_order_id = str(sell_order_data["_id"])
         put_markdown(f"""
         ## 卖单
 
         发布时间：{sell_order_data['publish_time']}
-        单价：{sell_order_data['order']['price']['single']}
+        单价：{sell_order_data['order']['price']['unit']}
         总量：{sell_order_data['order']['amount']['total']}
         已交易：{sell_order_data['order']['amount']['traded']}
         剩余：{sell_order_data['order']['amount']['remaining']}
@@ -179,13 +139,13 @@ def my_orders() -> None:
         """, sanitize=False)
         put_buttons(
             buttons=[
-                {"label": "修改价格", "value": "change_price", "color": "success"},
-                {"label": "修改已交易数量", "value": "change_traded", "color": "success"},
+                {"label": "修改价格", "value": "change_unit_price", "color": "success"},
+                {"label": "修改已交易数量", "value": "change_traded_amount", "color": "success"},
                 {"label": "删除", "value": "warning"}
             ],
             onclick=[
-                on_sell_order_change_price_button_clicked,
-                on_sell_order_change_traded_button_clicked,
-                on_sell_order_delete_button_clicked
+                lambda: on_sell_order_change_unit_price_button_clicked(sell_order_id),
+                lambda: on_sell_order_change_traded_amount_button_clicked(sell_order_id),
+                lambda: on_sell_order_delete_button_clicked(sell_order_id)
             ]
         )

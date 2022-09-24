@@ -14,7 +14,11 @@ def is_order_id_exist(order_id: str) -> bool:
 
 
 def is_uid_order_type_exist(uid: str, order_type: Literal["buy", "sell"]) -> bool:
-    return order_data_db.count_documents({"user.id": uid, "order.type": order_type}) != 0
+    return order_data_db.count_documents({
+        "status": 1,  # 交易中
+        "order.type": order_type,
+        "user.id": uid,
+    }) != 0
 
 
 def get_order_data_from_order_id(order_id: str) -> Dict:
@@ -24,8 +28,8 @@ def get_order_data_from_order_id(order_id: str) -> Dict:
     return result
 
 
-def new_order(order_type: Literal["buy", "sell"], unit_price: float,
-              total_amount: int, uid: str):
+def create_order(order_type: Literal["buy", "sell"], unit_price: float,
+                 total_amount: int, uid: str):
     if order_type not in {"buy", "sell"}:
         raise TypeError("参数 order_type 必须为 buy 或 sell")
     if unit_price is None:
@@ -51,7 +55,7 @@ def new_order(order_type: Literal["buy", "sell"], unit_price: float,
         "order": {
             "type": order_type,
             "price": {
-                "single": unit_price,
+                "unit": unit_price,
                 "total": total_price
             },
             "amount": {
@@ -62,7 +66,7 @@ def new_order(order_type: Literal["buy", "sell"], unit_price: float,
         },
         "user": {
             "id": uid,
-            "name": user_data["name"]
+            "name": user_data["user_name"]
         }
     })
 
@@ -76,8 +80,8 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
     # 此处如果 Order ID 不存在，会抛出异常
     # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
     order_data = get_order_data_from_order_id(order_id)
-    total_price: float = round(unit_price * order_data["amount"]["total"], 2)
-    order_data["price"] = {
+    total_price: float = round(unit_price * order_data["order"]["amount"]["total"], 2)
+    order_data["order"]["price"] = {
         "unit": unit_price,
         "total": total_price
     }
@@ -96,18 +100,18 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     # 此处如果 Order ID 不存在，会抛出异常
     # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
     order_data = get_order_data_from_order_id(order_id)
-    total_amount: int = order_data["amount"]["total"]
+    total_amount: int = order_data["order"]["amount"]["total"]
     if traded_amount > total_amount:
         raise AmountIlliegalError("已交易量不能大于总量")
 
     remaining_amount: int = total_amount - traded_amount
-    unit_price: float = order_data["price"]["unit"]
+    unit_price: float = order_data["order"]["price"]["unit"]
     total_price: float = round(unit_price * total_amount, 2)
-    order_data["price"] = {
+    order_data["order"]["price"] = {
         "unit": unit_price,
         "total": total_price
     }
-    order_data["amount"] = {
+    order_data["order"]["amount"] = {
         "total": total_amount,
         "traded": traded_amount,
         "remaining": remaining_amount
@@ -146,13 +150,13 @@ def get_orders_list(order_type: Literal["buy", "sell"], limit: int) -> List[Dict
         # 根据交易单类型应用对应排序规则
         # 买单价格升序，卖单价格降序
         .sort([(
-            "price.unit", -1 if order_type == "buy" else 1
+            "order.price.unit", -1 if order_type == "buy" else 1
         )])
         .limit(limit)
     )
 
 
-def get_my_active_order(order_type: Literal["buy", "sell"], uid: str) -> Dict:
+def get_my_active_order(uid: str, order_type: Literal["buy", "sell"]) -> Dict:
     return (
         order_data_db
         .find_one({
@@ -163,7 +167,7 @@ def get_my_active_order(order_type: Literal["buy", "sell"], uid: str) -> Dict:
     )
 
 
-def get_my_finished_orders_list(order_type: Literal["buy", "sell"], uid: str) -> List[Dict]:
+def get_my_finished_orders_list(uid: str, order_type: Literal["buy", "sell"]) -> List[Dict]:
     return (
         order_data_db
         .find({

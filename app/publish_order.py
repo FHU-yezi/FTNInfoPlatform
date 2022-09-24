@@ -1,98 +1,70 @@
 from time import sleep
 from typing import Literal
 
-from pywebio.output import put_buttons, put_markdown, toast, use_scope
+from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
-from utils.auth import check_cookie, get_uid_from_cookie, new_cookie
-from utils.db import trade_data_db, user_data_db
-from utils.page import (close_page, get_base_url, get_cookie, jump_to,
-                        set_cookie)
+from utils.data.order import create_order
+from utils.data.token import create_token, verify_token
+from utils.exceptions import (AmountIlliegalError, DuplicatedOrderError,
+                              PriceIlliegalError, TokenNotExistError)
+from utils.page import close_page, get_base_url, get_token, jump_to, set_token
 from utils.popup import login_popup
-from utils.time_helper import get_now_without_mileseconds
-from utils.widgets import toast_error_and_return, toast_warn_and_return
+from utils.widgets import (toast_error_and_return, toast_success,
+                           toast_warn_and_return)
 
 NAME: str = "发布意向单"
 DESC: str = "发布交易意向"
 VISIBILITY: bool = True
 
 
-def is_already_has_order(uid: str, order_type: str) -> bool:
-    return trade_data_db.count_documents(
-        {"user.id": uid, "order.type": order_type}
-    ) != 0
-
-
-def get_name_from_uid(uid: str) -> str:
-    return user_data_db.find_one({"_id": uid})["user_name"]
-
-
-def on_price_or_amount_input_changed(_) -> None:
-    price: float = pin.price
+def on_unit_price_or_total_amount_input_changed(_) -> None:
+    unit_price: float = pin.unit_price
     total_amount: float = pin.total_amount
 
-    if not price or not total_amount:
+    if not unit_price or not total_amount:
         return
 
-    if not 0 < price <= 3 or not 0 < total_amount <= 10 ** 8:
+    if not 0 < unit_price <= 3 or not 0 < total_amount <= 10 ** 8:
         return
 
-    total_price: float = round(price * total_amount, 2)
+    total_price: float = round(unit_price * total_amount, 2)
     pin_update("total_price", value=total_price)
 
 
-def on_publish_button_clicked() -> None:
-    global uid
-    order_type: Literal["buy", "sell"] = "buy" if pin.order_type == "买单" else "sell"
-    price: float = pin.price
+def on_publish_button_clicked(uid: str) -> None:
+    order_type: Literal["buy", "sell"] = (
+        "buy" if pin.order_type == "买单" else "sell"
+    )
+    unit_price: float = pin.unit_price
     total_amount: int = pin.total_amount
-    total_price: float = round(price * total_amount, 2)
 
-    if not price or not total_amount:
-        toast_warn_and_return("请输入价格和数量")
-
-    if price <= 0 or total_amount <= 0:
-        toast_error_and_return("价格和数量必须大于 0")
-
-    if is_already_has_order(uid, order_type):
+    try:
+        create_order(order_type, unit_price, total_amount, uid)
+    except PriceIlliegalError:
+        toast_error_and_return("单价为空或不在正常范围内")
+    except AmountIlliegalError:
+        toast_error_and_return("总量为空或不在正常范围内")
+    except DuplicatedOrderError:
+        # TODO: 允许用户删除之前的交易单，并重新发布新交易单
         toast_warn_and_return("您已经发布过该类型的交易单")
+    else:
+        toast_success("交易单发布成功")
+        # 将按钮设为不可用
+        # TODO
+        with use_scope("buttons", clear=True):
+            put_buttons(
+                buttons=[
+                    {"label": "已发布", "value": "publish", "color": "success", "disabled": True},
+                    {"label": "取消", "value": "cancel"}
+                ],
+                onclick=[
+                    on_publish_button_clicked,
+                    on_cancel_button_clicked
+                ]
+            )
 
-    trade_data_db.insert_one({
-        "publish_time": get_now_without_mileseconds(),
-        "order": {
-            "type": order_type,
-            "price": {
-                "single": price,
-                "total": total_price
-            },
-            "amount": {
-                "total": total_amount,
-                "traded": 0,
-                "remaining": total_amount
-            }
-        },
-        "user": {
-            "id": uid,
-            "name": get_name_from_uid(uid)
-        }
-    })
-
-    toast("交易单发布成功！", color="success")
-    # 将按钮设为不可用
-    # TODO
-    with use_scope("buttons", clear=True):
-        put_buttons(
-            buttons=[
-                {"label": "已发布", "value": "publish", "color": "success", "disabled": True},
-                {"label": "取消", "value": "cancel"}
-            ],
-            onclick=[
-                on_publish_button_clicked,
-                on_cancel_button_clicked
-            ]
-        )
-
-    sleep(1)
-    jump_to(get_base_url() + "?app=my_orders")
+        sleep(1)
+        jump_to(get_base_url() + "?app=my_orders")
 
 
 def on_cancel_button_clicked() -> None:
@@ -100,18 +72,17 @@ def on_cancel_button_clicked() -> None:
 
 
 def publish_order() -> None:
+    try:
+        uid = verify_token(get_token())
+    except TokenNotExistError:
+        uid = login_popup()
+        set_token(create_token(uid))
+
     put_markdown("# 发布意向单")
-    if not check_cookie(get_cookie()):
-        login_popup()
-        set_cookie(new_cookie(pin.user_name, pin.password))
-
-    global uid
-    uid = get_uid_from_cookie(get_cookie())
-
     put_select("order_type", label="意向类型", options=["买单", "卖单"],
                value="买单", help_text="我要买贝 => 买单，我要卖贝 => 卖单")
-    put_input("price", "float", label="单价")
-    put_input("total_amount", "number", label="数量")
+    put_input("unit_price", "float", label="单价")
+    put_input("total_amount", "number", label="总量")
     put_input("total_price", "float", label="总价", readonly=True)
     with use_scope("buttons", clear=True):
         put_buttons(
@@ -120,10 +91,16 @@ def publish_order() -> None:
                 {"label": "取消", "value": "cancel"}
             ],
             onclick=[
-                on_publish_button_clicked,
+                lambda: on_publish_button_clicked(uid),
                 on_cancel_button_clicked
             ]
         )
 
-    pin_on_change("price", onchange=on_price_or_amount_input_changed)
-    pin_on_change("total_amount", onchange=on_price_or_amount_input_changed)
+    pin_on_change(
+        "price",
+        onchange=lambda _: on_unit_price_or_total_amount_input_changed(uid)
+    )
+    pin_on_change(
+        "total_amount",
+        onchange=lambda _: on_unit_price_or_total_amount_input_changed(uid)
+    )
