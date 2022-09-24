@@ -28,6 +28,33 @@ def get_order_data_from_order_id(order_id: str) -> Dict:
     return result
 
 
+def get_in_trading_orders_count(order_type: Literal["buy", "sell"]) -> int:
+    return order_data_db.count_documents({
+        "status": 0,  # 交易中
+        "order.type": order_type
+    })
+
+
+def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
+    if get_in_trading_orders_count(order_type) < 5:
+        return 0.1  # 数据不足，结果不准确，返回官方指导价
+
+    prices = [
+        x["order"]["price"]["unit"]
+        for x in order_data_db.find(
+            {
+                "status": 0,  # 交易中
+                "order.type": order_type
+            },
+            {
+                "_id": 0,
+                "order.price.unit": 1
+            }
+        )
+    ]
+    return round(sum(prices) / len(prices), 3)
+
+
 def create_order(order_type: Literal["buy", "sell"], unit_price: float,
                  total_amount: int, uid: str):
     if order_type not in {"buy", "sell"}:

@@ -3,7 +3,7 @@ from typing import Literal
 
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
-from utils.data.order import create_order
+from utils.data.order import create_order, get_FTN_avagae_price
 from utils.data.token import create_token, verify_token
 from utils.exceptions import (AmountIlliegalError, DuplicatedOrderError,
                               PriceIlliegalError, TokenNotExistError)
@@ -29,6 +29,13 @@ def on_unit_price_or_total_amount_input_changed(_) -> None:
 
     total_price: float = round(unit_price * total_amount, 2)
     pin_update("total_price", value=total_price)
+
+
+def on_order_type_changed(_) -> None:
+    order_type: str = pin.order_type
+
+    help_text: str = f"市场参考价：{get_FTN_avagae_price(order_type)}"
+    pin_update("unit_price", help_text=help_text)
 
 
 def on_publish_button_clicked(uid: str) -> None:
@@ -81,7 +88,8 @@ def publish_order() -> None:
     put_markdown("# 发布意向单")
     put_select("order_type", label="意向类型", options=["买单", "卖单"],
                value="买单", help_text="我要买贝 => 买单，我要卖贝 => 卖单")
-    put_input("unit_price", "float", label="单价")
+    put_input("unit_price", "float", label="单价",
+              help_text=f"市场参考价：{get_FTN_avagae_price('buy')}")  # 默认 order_type 为 buy
     put_input("total_amount", "number", label="总量")
     put_input("total_price", "float", label="总价", readonly=True)
     with use_scope("buttons", clear=True):
@@ -103,4 +111,8 @@ def publish_order() -> None:
     pin_on_change(
         "total_amount",
         onchange=lambda _: on_unit_price_or_total_amount_input_changed(uid)
+    )
+    pin_on_change(
+        "order_type",
+        onchange=on_order_type_changed
     )
