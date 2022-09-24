@@ -71,4 +71,18 @@ def log_in(user_name: str, password: str) -> str:
     })
     if not user_data:  # 未查询到相应记录
         raise UsernameOrPasswordWrongError("用户名或密码错误")
-    return str(user_data["_id"])
+    uid: str = str(user_data["_id"])
+    update_user_last_active_time(uid)
+    return uid
+
+
+def update_user_last_active_time(uid: str) -> None:
+    user_data = user_data_db.find_one({"_id": ObjectId(uid)})
+    if not user_data:
+        raise UIDNotExistError("UID 不存在")
+
+    user_data["last_active_time"] = get_now_without_mileseconds()
+    user_data_db.update_one(
+        {"_id": ObjectId(uid)},
+        {"$set": user_data}
+    )

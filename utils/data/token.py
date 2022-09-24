@@ -3,6 +3,7 @@ from time import time
 
 from bson import ObjectId
 from utils.config import config
+from utils.data.user import update_user_last_active_time
 from utils.db import token_data_db, user_data_db
 from utils.exceptions import TokenNotExistError, UIDNotExistError
 from utils.hash import get_hash
@@ -51,7 +52,9 @@ def verify_token(token: str) -> str:
     token_data = token_data_db.find_one({"token": token})
     if not token_data:
         raise TokenNotExistError("Token 不存在或已过期")
-    return token_data["user"]["id"]
+    uid: str = token_data["user"]["id"]
+    update_user_last_active_time(uid)
+    return uid
 
 
 def expire_token(token: str) -> None:
