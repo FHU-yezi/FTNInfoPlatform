@@ -10,7 +10,7 @@ class Module:
     page_func: Callable[[], None]
     page_name: str
     page_desc: str
-    page_visibility: str
+    page_visibility: bool
 
 
 def get_all_modules(base_path: str) -> List[str]:
