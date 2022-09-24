@@ -21,12 +21,11 @@ user_data_db = db.user_data
 token_data_db = db.token_data
 access_log_db = db.access_log
 
-
 # 如果索引不存在，创建对应索引
-if not order_data_db.list_indexes():
-    pass
-if not user_data_db.list_indexes():
-    pass
-if not token_data_db.list_indexes():
+# if not order_data_db.list_indexes():
+#     pass
+# if not user_data_db.list_indexes():
+#     pass
+if "expire_time" not in list(token_data_db.list_indexes().next()):
     # 在 expire_time 时间点过期
     token_data_db.create_index([("expire_time", 1)], expireAfterSeconds=0)
