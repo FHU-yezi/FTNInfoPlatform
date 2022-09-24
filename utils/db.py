@@ -16,17 +16,17 @@ def get_collection(collection_name: str):
     return db[collection_name]
 
 
-trade_data_db = db.trade_data
+order_data_db = db.order_data
 user_data_db = db.user_data
-cookie_data_db = db.cookie_data
+token_data_db = db.token_data
 access_log_db = db.access_log
 
 
 # 如果索引不存在，创建对应索引
-if not trade_data_db.list_indexes():
+if not order_data_db.list_indexes():
     pass
 if not user_data_db.list_indexes():
     pass
-if not cookie_data_db.list_indexes():
+if not token_data_db.list_indexes():
     # 在 expire_time 时间点过期
-    cookie_data_db.create_index([("expire_time", 1)], expireAfterSeconds=0)
+    token_data_db.create_index([("expire_time", 1)], expireAfterSeconds=0)

@@ -1,5 +1,4 @@
-from datetime import date, datetime
-from typing import Dict
+from datetime import date, datetime, timedelta
 
 
 def get_now_without_mileseconds() -> datetime:
@@ -8,3 +7,7 @@ def get_now_without_mileseconds() -> datetime:
 
 def get_today_in_datetime_obj() -> datetime:
     return datetime.fromisoformat(date.today().strftime(r"%Y-%m-%d"))
+
+
+def get_datetime_after_seconds(datetime_obj: datetime, offset: int) -> datetime:
+    return datetime_obj + timedelta(seconds=offset)

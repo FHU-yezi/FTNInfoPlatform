@@ -4,7 +4,7 @@ from time import time
 from utils.text_filter import has_banned_chars
 
 from utils.config import config
-from utils.db import cookie_data_db, user_data_db
+from utils.db import token_data_db, user_data_db
 
 
 def get_hash(text: str) -> str:
@@ -49,7 +49,7 @@ def new_cookie(user_name: str, password: str) -> str:
     cookie = generate_cookie(user_name, hashed_password)
     user_data = user_data_db.find_one({"user_name": user_name})
 
-    cookie_data_db.insert_one({
+    token_data_db.insert_one({
         "create_time": now_time,
         "expire_time": now_time + timedelta(
             seconds=config.cookie_expire_seconds
@@ -67,7 +67,7 @@ def check_cookie(cookie: str) -> bool:
     if not cookie:  # Cookie 字符串为空
         return False
 
-    cookie_data = cookie_data_db.find_one({"cookie": cookie})
+    cookie_data = token_data_db.find_one({"cookie": cookie})
     if not cookie_data:  # 没有对应的 Cookie
         return False
     else:
@@ -75,7 +75,7 @@ def check_cookie(cookie: str) -> bool:
             datetime.now() + timedelta(seconds=config.cookie_expire_seconds)
         )
         # 顺延 Cookie 有效期
-        cookie_data_db.update_one(
+        token_data_db.update_one(
             {"_id": cookie_data["_id"]},
             {"$set": cookie_data}
         )
@@ -83,16 +83,16 @@ def check_cookie(cookie: str) -> bool:
 
 
 def expire_cookie(cookie: str) -> bool:
-    cookie_data = cookie_data_db.find_one({"cookie": cookie})
+    cookie_data = token_data_db.find_one({"cookie": cookie})
     if not cookie_data:  # 没有对应的 Cookie
         return False
     else:
-        cookie_data_db.delete_one({"_id": cookie_data["_id"]})
+        token_data_db.delete_one({"_id": cookie_data["_id"]})
         return True
 
 
 def get_uid_from_cookie(cookie: str) -> str:
-    result = cookie_data_db.find_one({"cookie": cookie})
+    result = token_data_db.find_one({"cookie": cookie})
     if not result:
         return ""
     else:
