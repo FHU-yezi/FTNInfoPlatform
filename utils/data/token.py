@@ -45,6 +45,22 @@ def create_token(uid: str) -> str:
     return token
 
 
+def update_token_expire_time(token: str) -> None:
+    token_data = token_data_db.find_one({"token": token})
+    if not token_data:
+        raise TokenNotExistError("Token 不存在或已过期")
+
+    token_data["expire_time"] = get_datetime_after_seconds(
+        get_now_without_mileseconds(),
+        offset=config.token_expire_seconds
+    )
+
+    token_data_db.update_one(
+        {"token": token},
+        {"$set": token_data}
+    )
+
+
 def verify_token(token: str) -> str:
     if token is None:
         raise TokenNotExistError("Token 不能为空")
@@ -53,6 +69,7 @@ def verify_token(token: str) -> str:
     if not token_data:
         raise TokenNotExistError("Token 不存在或已过期")
     uid: str = token_data["user"]["id"]
+    update_token_expire_time(token)
     update_user_last_active_time(uid)
     return uid
 
