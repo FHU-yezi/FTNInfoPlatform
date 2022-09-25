@@ -21,7 +21,7 @@ def is_uid_order_type_exist(uid: str, order_type: Literal["buy", "sell"]) -> boo
     return (
         order_data_db.count_documents(
             {
-                "status": 1,  # 交易中
+                "status": 0,  # 交易中
                 "order.type": order_type,
                 "user.id": uid,
             }
@@ -40,10 +40,10 @@ def get_order_data_from_order_id(order_id: str) -> Dict:
 def get_in_trading_orders_count(order_type: Literal["buy", "sell"]) -> int:
     return order_data_db.count_documents(
         {
-            "status": 0,
+            "status": 0,  # 交易中
             "order.type": order_type,
         }
-    )  # 交易中
+    )
 
 
 def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
@@ -79,7 +79,7 @@ def create_order(
     if not 0 < unit_price <= 3:
         raise PriceIlliegalError("单价必须在 0.0 - 3.0 之间")
     if not 0 < total_amount <= 10**8:
-        raise AmountIlliegalError("总量必须在 0 - 10 ** 8 之间")
+        raise AmountIlliegalError("总量必须在 0 - 10**8 之间")
 
     if is_uid_order_type_exist(uid, order_type):
         raise DuplicatedOrderError("该用户已存在该类型交易单")
