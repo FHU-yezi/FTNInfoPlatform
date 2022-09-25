@@ -63,10 +63,10 @@ def on_publish_button_clicked(uid: str) -> None:
     except AmountIlliegalError:
         toast_error_and_return("总量为空或不在正常范围内")
     except DuplicatedOrderError:
-        # TODO: 允许用户删除之前的交易单，并重新发布新交易单
-        toast_warn_and_return("您已经发布过该类型的交易单")
+        # TODO: 允许用户删除之前的交易单，并重新发布新意向单
+        toast_warn_and_return("您已经发布过该类型的意向单")
     else:
-        toast_success("交易单发布成功")
+        toast_success("发布成功")
         # 将按钮设为不可用
         # TODO
         with use_scope("buttons", clear=True):
