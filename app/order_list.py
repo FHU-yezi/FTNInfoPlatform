@@ -42,6 +42,8 @@ def order_list() -> None:
                 ],
             )
         )
+    if not buy_view:
+        buy_view.append(put_markdown("系统中暂无意向单，去发布一个？"))
 
     sell_view = []
     for item in get_orders_list("sell", 20):
@@ -67,6 +69,8 @@ def order_list() -> None:
                 ],
             )
         )
+    if not sell_view:
+        sell_view.append(put_markdown("系统中暂无意向单，去发布一个？"))
 
     put_tabs(
         [
