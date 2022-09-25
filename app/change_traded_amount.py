@@ -4,21 +4,31 @@ from typing import Dict
 from bson import ObjectId
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
-from utils.data.order import (change_order_traded_amount,
-                              get_order_data_from_order_id)
+from utils.data.order import (
+    change_order_traded_amount,
+    get_order_data_from_order_id,
+)
 from utils.data.token import create_token, verify_token
 from utils.db import order_data_db
-from utils.exceptions import (AmountIlliegalError, OrderIDNotExistError,
-                              TokenNotExistError)
-from utils.page import (close_page, get_token, get_url_params,
-                        get_url_to_module, jump_to, set_token)
+from utils.exceptions import (
+    AmountIlliegalError,
+    OrderIDNotExistError,
+    TokenNotExistError,
+)
+from utils.page import (
+    close_page,
+    get_token,
+    get_url_params,
+    get_url_to_module,
+    jump_to,
+    set_token,
+)
 from utils.popup import login_popup
 from utils.widgets import toast_error_and_return, toast_success
 
 NAME: str = "修改已交易数量"
 DESC: str = "修改意向单的已交易数量"
 VISIBILITY: bool = False
-uid: str = ""  # TODO
 
 
 def get_order_data(order_id: str) -> Dict:
@@ -53,13 +63,21 @@ def on_change_button_clicked(order_id: str) -> None:
         with use_scope("buttons", clear=True):
             put_buttons(
                 buttons=[
-                    {"label": "已更新", "value": "publish", "color": "success", "disabled": True},
-                    {"label": "取消", "value": "cancel"}
+                    {
+                        "label": "已更新",
+                        "value": "publish",
+                        "color": "success",
+                        "disabled": True,
+                    },
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
                 ],
                 onclick=[
                     on_change_button_clicked,
-                    on_cancel_button_clicked
-                ]
+                    on_cancel_button_clicked,
+                ],
             )
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
@@ -89,34 +107,67 @@ def change_traded_amount() -> None:
         toast_error_and_return("您无权修改该意向单")
 
     put_markdown("# 修改已交易数量")
-    put_input("publish_time", "text", label="发布时间",
-              value=str(order_data["publish_time"]), readonly=True)
-    put_input("order_type", "text", label="意向类型",
-              value=("买" if order_data["order"]["type"] == "buy" else "卖"),
-              readonly=True)
-    put_input("unit_price", "float", label="单价",
-              value=order_data["order"]["price"]["unit"], readonly=True)
-    put_input("total_amount", "number", label="总量",
-              value=order_data["order"]["amount"]["total"], readonly=True)
-    put_input("traded_amount", "number", label="已交易",
-              value=order_data["order"]["amount"]["traded"])
-    put_input("remaining_amount", "number", label="剩余",
-              value=order_data["order"]["amount"]["remaining"], readonly=True)
-    put_input("total_price", "number", label="总价",
-              value=order_data["order"]["price"]["total"], readonly=True)
+    put_input(
+        "publish_time",
+        "text",
+        label="发布时间",
+        value=str(order_data["publish_time"]),
+        readonly=True,
+    )
+    put_input(
+        "order_type",
+        "text",
+        label="意向类型",
+        value=("买" if order_data["order"]["type"] == "buy" else "卖"),
+        readonly=True,
+    )
+    put_input(
+        "unit_price",
+        "float",
+        label="单价",
+        value=order_data["order"]["price"]["unit"],
+        readonly=True,
+    )
+    put_input(
+        "total_amount",
+        "number",
+        label="总量",
+        value=order_data["order"]["amount"]["total"],
+        readonly=True,
+    )
+    put_input(
+        "traded_amount",
+        "number",
+        label="已交易",
+        value=order_data["order"]["amount"]["traded"],
+    )
+    put_input(
+        "remaining_amount",
+        "number",
+        label="剩余",
+        value=order_data["order"]["amount"]["remaining"],
+        readonly=True,
+    )
+    put_input(
+        "total_price",
+        "number",
+        label="总价",
+        value=order_data["order"]["price"]["total"],
+        readonly=True,
+    )
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
                 {"label": "更新", "value": "publish", "color": "success"},
-                {"label": "取消", "value": "cancel"}
+                {"label": "取消", "value": "cancel"},
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
-                on_cancel_button_clicked
-            ]
+                on_cancel_button_clicked,
+            ],
         )
 
-        pin_on_change(
-            "traded_amount",
-            onchange=lambda _: on_traded_amount_input_changed(order_id)
-        )
+    pin_on_change(
+        "traded_amount",
+        onchange=lambda _: on_traded_amount_input_changed(order_id),
+    )

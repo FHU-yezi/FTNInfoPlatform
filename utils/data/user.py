@@ -2,13 +2,21 @@ from typing import Dict
 
 from bson import ObjectId
 from utils.db import user_data_db
-from utils.exceptions import (DuplicatedUsernameError, PasswordIlliegalError,
-                              PasswordNotEqualError, UIDNotExistError,
-                              UsernameIlliegalError,
-                              UsernameOrPasswordWrongError, WeakPasswordError)
+from utils.exceptions import (
+    DuplicatedUsernameError,
+    PasswordIlliegalError,
+    PasswordNotEqualError,
+    UIDNotExistError,
+    UsernameIlliegalError,
+    UsernameOrPasswordWrongError,
+    WeakPasswordError,
+)
 from utils.hash import get_hash
-from utils.text_filter import (is_illiegal_password, is_illiegal_user_name,
-                               is_weak_password)
+from utils.text_filter import (
+    is_illiegal_password,
+    is_illiegal_user_name,
+    is_weak_password,
+)
 from utils.time_helper import get_now_without_mileseconds
 
 
@@ -23,8 +31,13 @@ def get_user_data_from_uid(uid: str) -> Dict:
     return result
 
 
-def sign_up(user_name: str, password: str, password_again: str,
-            admin_permissions_level: int, user_permissions_level: int) -> None:
+def sign_up(
+    user_name: str,
+    password: str,
+    password_again: str,
+    admin_permissions_level: int,
+    user_permissions_level: int,
+) -> None:
     if password != password_again:
         raise PasswordNotEqualError("两次输入的密码不一致")
     if not 0 <= admin_permissions_level <= 5:
@@ -47,16 +60,18 @@ def sign_up(user_name: str, password: str, password_again: str,
         raise DuplicatedUsernameError("用户名重复")
 
     hashed_password: str = get_hash(password)
-    user_data_db.insert_one({
-        "signin_time": get_now_without_mileseconds(),
-        "last_active_time": get_now_without_mileseconds(),
-        "user_name": user_name,
-        "password": hashed_password,
-        "permissions": {
-            "admin": admin_permissions_level,
-            "user": user_permissions_level
+    user_data_db.insert_one(
+        {
+            "signup_time": get_now_without_mileseconds(),
+            "last_active_time": get_now_without_mileseconds(),
+            "user_name": user_name,
+            "password": hashed_password,
+            "permissions": {
+                "admin": admin_permissions_level,
+                "user": user_permissions_level,
+            },
         }
-    })
+    )
 
 
 def log_in(user_name: str, password: str) -> str:
@@ -66,9 +81,12 @@ def log_in(user_name: str, password: str) -> str:
         raise PasswordIlliegalError("密码不能为空")
 
     hashed_password: str = get_hash(password)
-    user_data = user_data_db.find_one({
-        "user_name": user_name, "password": hashed_password
-    })
+    user_data = user_data_db.find_one(
+        {
+            "user_name": user_name,
+            "password": hashed_password,
+        }
+    )
     if not user_data:  # 未查询到相应记录
         raise UsernameOrPasswordWrongError("用户名或密码错误")
     uid: str = str(user_data["_id"])
@@ -84,5 +102,5 @@ def update_user_last_active_time(uid: str) -> None:
     user_data["last_active_time"] = get_now_without_mileseconds()
     user_data_db.update_one(
         {"_id": ObjectId(uid)},
-        {"$set": user_data}
+        {"$set": user_data},
     )

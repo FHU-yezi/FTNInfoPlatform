@@ -14,11 +14,7 @@ class Module:
 
 
 def get_all_modules(base_path: str) -> List[str]:
-    return [
-        x
-        for x in listdir(base_path)
-        if x.endswith(".py")
-    ]
+    return [x for x in listdir(base_path) if x.endswith(".py")]
 
 
 def get_module_info(base_path: str, module_name: str) -> Module:
@@ -33,12 +29,11 @@ def get_module_info(base_path: str, module_name: str) -> Module:
         page_func=page_func,
         page_name=page_name,
         page_desc=page_desc,
-        page_visibility=page_visibility
+        page_visibility=page_visibility,
     )
 
 
 def get_all_modules_info(base_path: str) -> List[Module]:
     return [
-        get_module_info(base_path, x.split(".")[0])
-        for x in get_all_modules(base_path)
+        get_module_info(base_path, x.split(".")[0]) for x in get_all_modules(base_path)
     ]
