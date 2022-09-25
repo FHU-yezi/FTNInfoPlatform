@@ -21,7 +21,7 @@ def get_url_to_module(module_name: str) -> str:
 
 def get_chart_width() -> int:
     # 850 为宽度上限
-    return min(eval_js('document.body.clientWidth'), 850)
+    return min(eval_js("document.body.clientWidth"), 850)
 
 
 def get_chart_height() -> int:
@@ -55,20 +55,14 @@ def close_page() -> None:
 
 def get_url_params() -> Dict[str, str]:
     url = eval_js("window.location.href")
-    result: Dict[str, str] = dict([
-        x.split("=")
-        for x in url.split("?")[1].split("&")
-    ])
+    result: Dict[str, str] = dict([x.split("=") for x in url.split("?")[1].split("&")])
     if result.get("app"):  # 去除子页面参数
         del result["app"]
     return result
 
 
 def set_url_params(url: str, params: Dict[str, Any]) -> str:
-    params_str: str = "&".join([
-        f"{key}={value}"
-        for key, value in params.items()
-    ])
+    params_str: str = "&".join([f"{key}={value}" for key, value in params.items()])
     if "?" not in url:
         if not url.endswith("/"):
             return url + "/?" + params_str

@@ -20,39 +20,61 @@ def order_list() -> None:
 
     buy_view = []
     for item in get_orders_list("buy", 20):
-        buy_view.append(put_collapse(
-            title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
-            content=[
-                put_button(
-                    "我的", color="success", small=True,
-                    onclick=lambda: None if item['user']['id'] == uid else put_markdown("")
-                ),
-                put_markdown(f"""
-                发布时间：{item['publish_time']}
-                发布者：{item['user']['name']}
-                已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
-                """)
-            ]
-        ))
+        buy_view.append(
+            put_collapse(
+                title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
+                content=[
+                    put_button(
+                        "我的",
+                        color="success",
+                        small=True,
+                        onclick=lambda: None
+                        if item["user"]["id"] == uid
+                        else put_markdown(""),
+                    ),
+                    put_markdown(
+                        f"""
+                        发布时间：{item['publish_time']}
+                        发布者：{item['user']['name']}
+                        已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
+                        """
+                    ),
+                ],
+            )
+        )
+    if not buy_view:
+        buy_view.append(put_markdown("系统中暂无意向单，去发布一个？"))
 
     sell_view = []
     for item in get_orders_list("sell", 20):
-        sell_view.append(put_collapse(
-            title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
-            content=[
-                put_button(
-                    "我的", color="success", small=True,
-                    onclick=lambda: None if item['user']['id'] == uid else put_markdown("")
-                ),
-                put_markdown(f"""
-                发布时间：{item['publish_time']}
-                发布者：{item['user']['name']}
-                已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
-                """)
-            ]
-        ))
+        sell_view.append(
+            put_collapse(
+                title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
+                content=[
+                    put_button(
+                        "我的",
+                        color="success",
+                        small=True,
+                        onclick=lambda: None
+                        if item["user"]["id"] == uid
+                        else put_markdown(""),
+                    ),
+                    put_markdown(
+                        f"""
+                        发布时间：{item['publish_time']}
+                        发布者：{item['user']['name']}
+                        已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
+                        """
+                    ),
+                ],
+            )
+        )
+    if not sell_view:
+        sell_view.append(put_markdown("系统中暂无意向单，去发布一个？"))
 
-    put_tabs([
-        {"title": "买单", "content": buy_view},
-        {"title": "卖单", "content": sell_view}
-    ])
+    put_tabs(
+        [
+            {"title": "买单", "content": buy_view},
+            {"title": "卖单", "content": sell_view},
+        ]
+    )

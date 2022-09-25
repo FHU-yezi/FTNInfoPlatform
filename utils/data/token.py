@@ -7,8 +7,10 @@ from utils.data.user import update_user_last_active_time
 from utils.db import token_data_db, user_data_db
 from utils.exceptions import TokenNotExistError, UIDNotExistError
 from utils.hash import get_hash
-from utils.time_helper import (get_datetime_after_seconds,
-                               get_now_without_mileseconds)
+from utils.time_helper import (
+    get_datetime_after_seconds,
+    get_now_without_mileseconds,
+)
 
 
 def generate_token(uid: str) -> str:
@@ -32,16 +34,18 @@ def create_token(uid: str) -> str:
 
     now_time: datetime = get_now_without_mileseconds()
     token: str = generate_token(uid)
-    token_data_db.insert_one({
-        "create_time": now_time,
-        "expire_time": get_datetime_after_seconds(
-            now_time, offset=config.token_expire_seconds
-        ),
-        "user": {
-            "id": uid
-        },
-        "token": token
-    })
+    token_data_db.insert_one(
+        {
+            "create_time": now_time,
+            "expire_time": get_datetime_after_seconds(
+                now_time, offset=config.token_expire_seconds
+            ),
+            "user": {
+                "id": uid,
+            },
+            "token": token,
+        }
+    )
     return token
 
 
@@ -52,12 +56,12 @@ def update_token_expire_time(token: str) -> None:
 
     token_data["expire_time"] = get_datetime_after_seconds(
         get_now_without_mileseconds(),
-        offset=config.token_expire_seconds
+        offset=config.token_expire_seconds,
     )
 
     token_data_db.update_one(
         {"token": token},
-        {"$set": token_data}
+        {"$set": token_data},
     )
 
 

@@ -1,24 +1,8 @@
 from re import compile
 from typing import Set
 
-BANNED_CHARS: Set[str] = {
-    " ",
-    "\\",
-    ";",
-    "^",
-    "$",
-}
-USER_NAME_ILLIEGAL_CHARS: Set[str] = {
-    " ", "!", "@", "#",
-    "\\", "$", "%", "^",
-    "/", "&", "*", "|",
-    ":", "<", ">", ",",
-    ";", ".", "?", "`",
-    "[", "~", "！", "，",
-    "]", "。", "？", "(",
-    ")", "-", "=", "：",
-    "；", "、", "￥"
-}
+BANNED_CHARS: Set[str] = set(R" \;^$")
+USER_NAME_ILLIEGAL_CHARS: Set[str] = set(R" !@#\$%^/&*|:<>,;.?`[~！，]。？()-=：；、￥")
 # 长度至少为 8 位，至少包含 1 个字母和 1 个数字
 PASSWORD_RE = compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$")
 
@@ -36,7 +20,7 @@ def is_illiegal_password(password: str) -> bool:
         return True
     for char in password:
         # 判断是否包含中文
-        if '\u4e00' <= char <= '\u9fff':
+        if "\u4e00" <= char <= "\u9fff":
             return True
     return False
 

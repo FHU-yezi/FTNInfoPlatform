@@ -5,8 +5,11 @@ from pywebio.pin import pin, put_input
 
 from utils.callback import bind_enter_key_callback
 from utils.data.user import log_in
-from utils.exceptions import (PasswordIlliegalError, UsernameIlliegalError,
-                              UsernameOrPasswordWrongError)
+from utils.exceptions import (
+    PasswordIlliegalError,
+    UsernameIlliegalError,
+    UsernameOrPasswordWrongError,
+)
 from utils.page import get_url_to_module, jump_to
 from utils.widgets import toast, toast_error_and_return, toast_warn_and_return
 
@@ -23,16 +26,16 @@ def login_popup() -> str:
             put_buttons(
                 buttons=[
                     {"label": "登录", "value": "login", "color": "success"},
-                    {"label": "注册", "value": "signup"}
+                    {"label": "注册", "value": "signup"},
                 ],
                 onclick=[
                     on_login_button_clicked,
-                    on_signup_button_clicked
-                ]
-            )
+                    on_signup_button_clicked,
+                ],
+            ),
         ],
         size="large",
-        closable=False
+        closable=False,
     )
     bind_enter_key_callback("password", on_enter_key_pressed)
 
@@ -66,4 +69,4 @@ def on_login_button_clicked() -> None:
 
 
 def on_signup_button_clicked() -> None:
-    jump_to(get_url_to_module("signin"))
+    jump_to(get_url_to_module("signup"))

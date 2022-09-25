@@ -26,6 +26,10 @@ class UIDNotExistError(Exception):
     pass
 
 
+class UsernameNotExistError(Exception):
+    pass
+
+
 class TokenNotExistError(Exception):
     pass
 
