@@ -8,6 +8,7 @@ from utils.exceptions import (
     PasswordNotEqualError,
     UIDNotExistError,
     UsernameIlliegalError,
+    UsernameNotExistError,
     UsernameOrPasswordWrongError,
     WeakPasswordError,
 )
@@ -31,13 +32,20 @@ def get_user_data_from_uid(uid: str) -> Dict:
     return result
 
 
+def get_uid_from_user_name(user_name: str) -> str:
+    result: Dict = user_data_db.find_one({"user_name": user_name})
+    if not result:
+        raise UsernameNotExistError("用户名不存在")
+    return str(result["_id"])
+
+
 def sign_up(
     user_name: str,
     password: str,
     password_again: str,
     admin_permissions_level: int,
     user_permissions_level: int,
-) -> None:
+) -> str:
     if password != password_again:
         raise PasswordNotEqualError("两次输入的密码不一致")
     if not 0 <= admin_permissions_level <= 5:
@@ -59,11 +67,12 @@ def sign_up(
     if is_user_name_exist(user_name):
         raise DuplicatedUsernameError("用户名重复")
 
+    now_time = get_now_without_mileseconds()
     hashed_password: str = get_hash(password)
     user_data_db.insert_one(
         {
-            "signup_time": get_now_without_mileseconds(),
-            "last_active_time": get_now_without_mileseconds(),
+            "signup_time": now_time,
+            "last_active_time": now_time,
             "user_name": user_name,
             "password": hashed_password,
             "permissions": {
@@ -72,6 +81,10 @@ def sign_up(
             },
         }
     )
+
+    # 返回新注册的用户的 UID
+    uid: str = get_uid_from_user_name(user_name)
+    return uid
 
 
 def log_in(user_name: str, password: str) -> str:

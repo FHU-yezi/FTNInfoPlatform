@@ -11,6 +11,8 @@ from utils.exceptions import (
     WeakPasswordError,
 )
 from utils.page import get_base_url, jump_to
+from utils.page import set_token
+from utils.data.token import create_token
 from utils.widgets import (
     toast_error_and_return,
     toast_success,
@@ -28,7 +30,7 @@ def on_signup_button_clicked() -> None:
     passowrd_again: str = pin.password_again
 
     try:
-        sign_up(
+        uid: str = sign_up(
             user_name,
             passowrd,
             passowrd_again,
@@ -62,7 +64,9 @@ def on_signup_button_clicked() -> None:
                 ],
                 onclick=[on_signup_button_clicked, on_cancel_button_clicked],
             )
-
+        # 为新注册的用户生成 Token
+        # 免去用户登录流程
+        set_token(create_token(uid))
         sleep(1)
         jump_to(get_base_url())
 
