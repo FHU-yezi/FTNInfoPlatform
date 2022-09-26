@@ -5,9 +5,11 @@ from utils.db import user_data_db
 from utils.exceptions import (
     DuplicatedUsernameError,
     PasswordIlliegalError,
+    PasswordNotChangedError,
     PasswordNotEqualError,
     UIDNotExistError,
     UsernameIlliegalError,
+    UsernameNotChangedError,
     UsernameNotExistError,
     UsernameOrPasswordWrongError,
     WeakPasswordError,
@@ -117,3 +119,55 @@ def update_user_last_active_time(uid: str) -> None:
         {"_id": ObjectId(uid)},
         {"$set": user_data},
     )
+
+
+def change_user_name(uid: str, new_user_name: str) -> None:
+    if not new_user_name:
+        raise UsernameIlliegalError("用户名不能为空")
+    if is_illiegal_user_name(new_user_name):
+        raise UsernameIlliegalError("用户名不合法")
+
+    if is_user_name_exist(new_user_name):
+        raise DuplicatedUsernameError("用户名重复")
+
+    user_data = user_data_db.find_one({"_id": ObjectId(uid)})
+    if not user_data:
+        raise UIDNotExistError("UID 不存在")
+    old_user_name: str = user_data["user_name"]
+    if old_user_name == new_user_name:
+        raise UsernameNotChangedError("新昵称不能与旧昵称相同")
+    user_data["user_name"] = new_user_name
+    user_data_db.update_one(
+        {"_id": ObjectId(uid)},
+        {"$set": user_data},
+    )
+
+
+def change_password(
+    uid: str, old_password: str, new_password: str, new_password_again: str
+) -> None:
+    if not old_password or not new_password:
+        raise PasswordIlliegalError("密码不能为空")
+    if is_illiegal_password(new_password):
+        raise PasswordIlliegalError("密码不合法")
+    if is_weak_password(new_password):
+        raise WeakPasswordError("密码强度不足")
+    if new_password != new_password_again:
+        raise PasswordNotEqualError("两次输入的密码不一致")
+
+    user_data = user_data_db.find_one({"_id": ObjectId(uid)})
+    if not user_data:
+        raise UIDNotExistError("UID 不存在")
+    hashed_old_password: str = get_hash(old_password)
+    if user_data["password"] != hashed_old_password:
+        raise UsernameOrPasswordWrongError("旧密码错误")
+    hashed_new_password: str = get_hash(new_password)
+    if hashed_old_password == hashed_new_password:
+        raise PasswordNotChangedError("新密码不能与旧密码相同")
+    user_data["password"] = hashed_new_password
+    user_data_db.update_one(
+        {"_id": ObjectId(uid)},
+        {"$set": user_data},
+    )
+
+    # 将用户当前的 Token 过期，该部分由调用方完成

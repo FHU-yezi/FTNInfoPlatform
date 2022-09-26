@@ -87,7 +87,7 @@ def signup() -> None:
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
-                {"label": "注册", "value": "publish", "color": "success"},
+                {"label": "注册", "value": "signup", "color": "success"},
                 {"label": "取消", "value": "cancel"},
             ],
             onclick=[on_signup_button_clicked, on_cancel_button_clicked],
