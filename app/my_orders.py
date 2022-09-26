@@ -13,7 +13,7 @@ from utils.page import (
     set_token,
     set_url_params,
 )
-from utils.popup import login_popup
+from utils.login import require_login
 
 NAME: str = "我的意向单"
 DESC: str = "查看并修改自己的意向单"
@@ -61,7 +61,7 @@ def my_orders() -> None:
     try:
         uid = verify_token(get_token())
     except TokenNotExistError:
-        uid = login_popup()
+        uid = require_login()
         set_token(create_token(uid))
 
     put_markdown("# 我的意向单")

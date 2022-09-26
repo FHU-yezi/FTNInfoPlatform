@@ -29,9 +29,9 @@ def order_list() -> None:
                         color="success",
                         small=True,
                         onclick=lambda: None
-                        if item["user"]["id"] == uid
-                        else put_markdown(""),
-                    ),
+                    )
+                    if item["user"]["id"] == uid
+                    else put_markdown(""),
                     put_markdown(
                         f"""
                         发布时间：{item['publish_time']}
@@ -56,9 +56,9 @@ def order_list() -> None:
                         color="success",
                         small=True,
                         onclick=lambda: None
-                        if item["user"]["id"] == uid
-                        else put_markdown(""),
-                    ),
+                    )
+                    if item["user"]["id"] == uid
+                    else put_markdown(""),
                     put_markdown(
                         f"""
                         发布时间：{item['publish_time']}
