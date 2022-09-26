@@ -1,10 +1,19 @@
 from time import sleep
 
-from pywebio.output import close_popup, popup, put_buttons, put_markdown, toast
+from pywebio.output import (
+    close_popup,
+    popup,
+    put_buttons,
+    put_markdown,
+    put_processbar,
+    put_row,
+    toast,
+)
 from utils.data.order import delete_order, get_my_active_order
 from utils.data.token import create_token, verify_token
 from utils.exceptions import TokenNotExistError
 from utils.html import link
+from utils.login import require_login
 from utils.page import (
     get_token,
     get_url_to_module,
@@ -13,7 +22,6 @@ from utils.page import (
     set_token,
     set_url_params,
 )
-from utils.login import require_login
 
 NAME: str = "我的意向单"
 DESC: str = "查看并修改自己的意向单"
@@ -91,6 +99,20 @@ def my_orders() -> None:
             """,
             sanitize=False,
         )
+        put_row(
+            [
+                put_markdown("交易进度："),
+                put_processbar(
+                    f"trade-process-bar-{buy_order_data['_id']}",
+                    init=round(
+                        buy_order_data["order"]["amount"]["traded"]
+                        / buy_order_data["order"]["amount"]["total"],
+                        3,
+                    ),
+                ),
+            ],
+            size="auto 3fr",
+        )
         put_buttons(
             buttons=[
                 {"label": "修改单价", "value": "change_unit_price", "color": "success"},
@@ -132,6 +154,20 @@ def my_orders() -> None:
             总价：{sell_order_data['order']['price']['total']}
             """,
             sanitize=False,
+        )
+        put_row(
+            [
+                put_markdown("交易进度："),
+                put_processbar(
+                    f"trade-process-bar-{sell_order_data['_id']}",
+                    init=round(
+                        sell_order_data["order"]["amount"]["traded"]
+                        / sell_order_data["order"]["amount"]["total"],
+                        3,
+                    ),
+                ),
+            ],
+            size="auto 3fr",
         )
         put_buttons(
             buttons=[

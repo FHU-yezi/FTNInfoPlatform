@@ -1,4 +1,11 @@
-from pywebio.output import put_button, put_collapse, put_markdown, put_tabs
+from pywebio.output import (
+    put_button,
+    put_collapse,
+    put_markdown,
+    put_tabs,
+    put_row,
+    put_processbar,
+)
 from utils.data.order import get_orders_list
 from utils.data.token import verify_token
 from utils.exceptions import TokenNotExistError
@@ -24,12 +31,7 @@ def order_list() -> None:
             put_collapse(
                 title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
                 content=[
-                    put_button(
-                        "我的",
-                        color="success",
-                        small=True,
-                        onclick=lambda: None
-                    )
+                    put_button("我的", color="success", small=True, onclick=lambda: None)
                     if item["user"]["id"] == uid
                     else put_markdown(""),
                     put_markdown(
@@ -38,6 +40,20 @@ def order_list() -> None:
                         发布者：{item['user']['name']}
                         已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
                         """
+                    ),
+                    put_row(
+                        [
+                            put_markdown("交易进度："),
+                            put_processbar(
+                                f"trade-process-bar-{item['_id']}",
+                                init=round(
+                                    item["order"]["amount"]["traded"]
+                                    / item["order"]["amount"]["total"],
+                                    3,
+                                ),
+                            ),
+                        ],
+                        size="auto 3fr",
                     ),
                 ],
             )
@@ -51,12 +67,7 @@ def order_list() -> None:
             put_collapse(
                 title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
                 content=[
-                    put_button(
-                        "我的",
-                        color="success",
-                        small=True,
-                        onclick=lambda: None
-                    )
+                    put_button("我的", color="success", small=True, onclick=lambda: None)
                     if item["user"]["id"] == uid
                     else put_markdown(""),
                     put_markdown(
@@ -65,6 +76,20 @@ def order_list() -> None:
                         发布者：{item['user']['name']}
                         已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
                         """
+                    ),
+                    put_row(
+                        [
+                            put_markdown("交易进度："),
+                            put_processbar(
+                                f"trade-process-bar-{item['_id']}",
+                                init=round(
+                                    item["order"]["amount"]["traded"]
+                                    / item["order"]["amount"]["total"],
+                                    3,
+                                ),
+                            ),
+                        ],
+                        size="auto 3fr",
                     ),
                 ],
             )

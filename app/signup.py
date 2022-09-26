@@ -78,7 +78,7 @@ def on_cancel_button_clicked() -> None:
 def signup() -> None:
     put_markdown("# 注册")
 
-    put_input("user_name", "text", label="用户名")
+    put_input("user_name", "text", label="用户名", help_text="建议与您的简书昵称相同")
     put_input(
         "password", "password", label="密码", help_text="长度至少为 8 位，至少包含 1 个字母和 1 个数字"
     )
