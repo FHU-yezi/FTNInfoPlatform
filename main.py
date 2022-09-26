@@ -28,19 +28,31 @@ def index() -> None:
 
     config.refresh()  # 刷新配置文件
 
-    content: str = ""
+    content: List[str] = []
     for module in modules_list:
         if not module.page_visibility:  # 模块被设为首页不可见
             continue
-        content += (
-            f"**{module.page_name}**   "
-            f"{get_jump_link(module.page_func_name)}\n\n"
-            f"{module.page_desc}\n\n"
+
+        content.append(f"**{module.page_name}**  ")
+        content.append(get_jump_link(module.page_func_name) + "\n\n")
+        content.append(f"{module.page_desc}\n\n")
+
+    # 反馈表单
+    content.append("**反馈表单**  ")
+    content.append(
+        link(
+            "点击跳转>>>",
+            "https://wenjuan.feishu.cn/m?t=sRUTTLBWT9Fi-9tzm",
+            new_window=True,
         )
+        + "\n\n"
+    )
+    content.append("提出建议、反馈问题\n\n")
+    content.append("提交后可参与简书贝抽奖，综合中奖率 20%")
 
     # 必须传入 sanitize=False 禁用 XSS 攻击防护
     # 否则 target="_blank" 属性会消失，无法实现新标签页打开
-    put_markdown(content, sanitize=False)
+    put_markdown("".join(content), sanitize=False)
 
 
 # 将主页函数加入列表
