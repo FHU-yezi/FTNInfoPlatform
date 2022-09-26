@@ -24,7 +24,7 @@ from utils.page import (
     jump_to,
     set_token,
 )
-from utils.popup import login_popup
+from utils.login import require_login
 from utils.widgets import toast_error_and_return, toast_success
 
 NAME: str = "修改单价"
@@ -98,7 +98,7 @@ def change_unit_price() -> None:
     try:
         uid = verify_token(get_token())
     except TokenNotExistError:
-        uid = login_popup()
+        uid = require_login()
         set_token(create_token(uid))
 
     if order_data["user"]["id"] != uid:

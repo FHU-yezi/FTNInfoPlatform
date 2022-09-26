@@ -2,6 +2,7 @@ from time import sleep
 
 from pywebio.output import close_popup, popup, put_buttons
 from pywebio.pin import pin, put_input
+from typing import List
 
 from utils.callback import bind_enter_key_callback
 from utils.data.user import log_in
@@ -13,11 +14,10 @@ from utils.exceptions import (
 from utils.page import get_url_to_module, jump_to
 from utils.widgets import toast, toast_error_and_return, toast_warn_and_return
 
-_login_finished: bool = False
-_uid: str = ""
 
+def require_login() -> str:
+    uid_container: List[str] = []
 
-def login_popup() -> str:
     popup(
         title="登录",
         content=[
@@ -29,7 +29,7 @@ def login_popup() -> str:
                     {"label": "注册", "value": "signup"},
                 ],
                 onclick=[
-                    on_login_button_clicked,
+                    lambda: on_login_button_clicked(uid_container),
                     on_signup_button_clicked,
                 ],
             ),
@@ -37,25 +37,28 @@ def login_popup() -> str:
         size="large",
         closable=False,
     )
-    bind_enter_key_callback("password", on_enter_key_pressed)
+    bind_enter_key_callback(
+        "password",
+        lambda _: on_enter_key_pressed(_, uid_container),
+    )
 
-    while not _login_finished:
-        sleep(0.3)
-    return _uid
+    while True:
+        if len(uid_container) != 1:
+            sleep(0.1)
+        else:
+            return uid_container[0]
 
 
-def on_enter_key_pressed(_) -> None:
-    on_login_button_clicked()
+def on_enter_key_pressed(_, uid_container: List[str]) -> None:
+    on_login_button_clicked(uid_container)
 
 
-def on_login_button_clicked() -> None:
-    global _login_finished
-    global _uid
+def on_login_button_clicked(uid_container: List[str]) -> None:
     user_name: str = pin.user_name
     password: str = pin.password
 
     try:
-        _uid = log_in(user_name, password)
+        uid = log_in(user_name, password)
     except UsernameIlliegalError:
         toast_warn_and_return("请输入用户名")
     except PasswordIlliegalError:
@@ -65,7 +68,7 @@ def on_login_button_clicked() -> None:
     else:
         toast("登录成功", color="success")
         close_popup()
-        _login_finished = True
+        uid_container.append(uid)
 
 
 def on_signup_button_clicked() -> None:
