@@ -72,7 +72,7 @@ def on_change_user_name_button_clicked(uid: str, old_user_name: str) -> None:
             )
             bind_enter_key_callback(
                 "new_user_name",
-                on_press=lambda _: on_change_password_confirmed(uid),
+                on_press=lambda _: on_change_user_name_confirmed(uid),
             )
 
 
