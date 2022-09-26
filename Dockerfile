@@ -2,6 +2,8 @@ FROM python:3.8.10-alpine
 
 ENV TZ Asia/Shanghai
 
+RUN apk add --update tzdata
+
 WORKDIR /app
 
 COPY requirements.txt .
