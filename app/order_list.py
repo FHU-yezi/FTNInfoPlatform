@@ -11,10 +11,10 @@ VISIBILITY: bool = True
 
 def order_list() -> None:
     try:
-        uid = verify_token(get_token())
+        uid: str = verify_token(get_token())
     except TokenNotExistError:
         # 这个页面并不强制要求用户登录
-        pass
+        uid: str = ""
 
     put_markdown("# 意向单列表")
 
