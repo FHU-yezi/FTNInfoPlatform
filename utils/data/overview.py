@@ -86,7 +86,9 @@ def get_24h_traded_FTN_amount(order_type: Literal["str", "sell"]) -> int:
             [
                 {
                     "$match": {
-                        "finish_time": datetime.now() - timedelta(days=1),
+                        "finish_time": {
+                            "$gte": datetime.now() - timedelta(days=1),
+                        },
                         "order.type": order_type,
                     }
                 },
@@ -109,7 +111,9 @@ def get_24h_traded_FTN_total_price(order_type: Literal["str", "sell"]) -> float:
             [
                 {
                     "$match": {
-                        "finish_time": datetime.now() - timedelta(days=1),
+                        "finish_time": {
+                            "$gte": datetime.now() - timedelta(days=1),
+                        },
                         "order.type": order_type,
                     }
                 },
@@ -133,7 +137,9 @@ def get_24h_traded_FTN_avg_price(order_type: Literal["str", "sell"]) -> float:
                 [
                     {
                         "$match": {
-                            "finish_time": datetime.now() - timedelta(days=1),
+                            "finish_time": {
+                                "$gte": datetime.now() - timedelta(days=1),
+                            },
                             "order.type": order_type,
                         }
                     },
@@ -160,7 +166,9 @@ def get_per_hour_traded_amount(
             [
                 {
                     "$match": {
-                        "finish_time": datetime.now() - timedelta(hours=hours),
+                        "finish_time": {
+                            "$gte": datetime.now() - timedelta(hours=hours),
+                        },
                         "order.type": order_type,
                     }
                 },
@@ -168,7 +176,7 @@ def get_per_hour_traded_amount(
                     "$group": {
                         "_id": {
                             "$dateTrunc": {
-                                "date": "$order.finish_time",
+                                "date": "$finish_time",
                                 "unit": "hour",
                             },
                         },
@@ -190,7 +198,9 @@ def get_per_day_traded_amount(
             [
                 {
                     "$match": {
-                        "finish_time": datetime.now() - timedelta(days=days),
+                        "finish_time": {
+                            "$gte": datetime.now() - timedelta(days=days),
+                        },
                         "order.type": order_type,
                     }
                 },
@@ -198,12 +208,76 @@ def get_per_day_traded_amount(
                     "$group": {
                         "_id": {
                             "$dateTrunc": {
-                                "date": "$order.finish_time",
+                                "date": "$finish_time",
                                 "unit": "day",
                             },
                         },
                         "traded_amount": {
                             "$sum": "$order.amount.total",
+                        },
+                    }
+                },
+            ]
+        )
+    )
+
+
+def get_per_hour_trade_avg_price(
+    order_type: Literal["buy", "sell"], hours: int
+) -> List[Dict]:
+    return list(
+        order_data_db.aggregate(
+            [
+                {
+                    "$match": {
+                        "finish_time": {
+                            "$gte": datetime.now() - timedelta(hours=hours),
+                        },
+                        "order.type": order_type,
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": {
+                            "$dateTrunc": {
+                                "date": "$finish_time",
+                                "unit": "hour",
+                            },
+                        },
+                        "avg_price": {
+                            "$avg": "$order.price.unit",
+                        },
+                    }
+                },
+            ]
+        )
+    )
+
+
+def get_per_day_trade_avg_price(
+    order_type: Literal["buy", "sell"], days: int
+) -> List[Dict]:
+    return list(
+        order_data_db.aggregate(
+            [
+                {
+                    "$match": {
+                        "finish_time": {
+                            "$gte": datetime.now() - timedelta(days=days),
+                        },
+                        "order.type": order_type,
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": {
+                            "$dateTrunc": {
+                                "date": "$finish_time",
+                                "unit": "day",
+                            },
+                        },
+                        "avg_price": {
+                            "$avg": "$order.price.unit",
                         },
                     }
                 },

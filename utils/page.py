@@ -25,7 +25,7 @@ def get_chart_width() -> int:
 
 
 def get_chart_height() -> int:
-    return int(get_chart_width() / 1.7)
+    return int(get_chart_width() / 1.5)
 
 
 def get_token() -> Optional[str]:
