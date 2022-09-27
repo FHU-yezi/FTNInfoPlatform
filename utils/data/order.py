@@ -91,6 +91,8 @@ def create_order(
     order_data_db.insert_one(
         {
             "publish_time": get_now_without_mileseconds(),
+            "finish_time": None,
+            "delete_time": None,
             "status": 0,
             "order": {
                 "type": order_type,
@@ -156,7 +158,8 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     }
     # 如果余量为 0，将交易单状态置为已完成
     if remaining_amount == 0:
-        order_data["status"] = 1
+        order_data["status"] = 1  # 已完成
+        order_data["finish_time"] = get_now_without_mileseconds()
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
         {"$set": order_data},
@@ -172,6 +175,7 @@ def delete_order(order_id: str) -> None:
         raise OrderStatusError("不能对状态不为交易中的交易单进行删除操作")
     # 将交易单状态置为已删除
     order_data["status"] = 2
+    order_data["delete_time"] = get_now_without_mileseconds()
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
         {"$set": order_data},
