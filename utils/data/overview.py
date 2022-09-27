@@ -185,6 +185,11 @@ def get_per_hour_traded_amount(
                         },
                     }
                 },
+                {
+                    "$sort": {
+                        "_id": 1
+                    }
+                },
             ]
         )
     )
@@ -215,6 +220,11 @@ def get_per_day_traded_amount(
                         "traded_amount": {
                             "$sum": "$order.amount.total",
                         },
+                    }
+                },
+                {
+                    "$sort": {
+                        "_id": 1
                     }
                 },
             ]
@@ -249,6 +259,11 @@ def get_per_hour_trade_avg_price(
                         },
                     }
                 },
+                {
+                    "$sort": {
+                        "_id": 1
+                    }
+                },
             ]
         )
     )
@@ -279,6 +294,11 @@ def get_per_day_trade_avg_price(
                         "avg_price": {
                             "$avg": "$order.price.unit",
                         },
+                    }
+                },
+                {
+                    "$sort": {
+                        "_id": 1
                     }
                 },
             ]
