@@ -54,14 +54,16 @@ def update_token_expire_time(token: str) -> None:
     if not token_data:
         raise TokenNotExistError("Token 不存在或已过期")
 
-    token_data["expire_time"] = get_datetime_after_seconds(
-        get_now_without_mileseconds(),
-        offset=config.token_expire_seconds,
-    )
-
     token_data_db.update_one(
         {"token": token},
-        {"$set": token_data},
+        {
+            "$set": {
+                "exipre_time": get_datetime_after_seconds(
+                    get_now_without_mileseconds(),
+                    offset=config.token_expire_seconds,
+                ),
+            },
+        },
     )
 
 
