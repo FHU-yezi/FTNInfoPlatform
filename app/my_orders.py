@@ -80,7 +80,9 @@ def my_orders() -> None:
             f"""
             ## 买单
 
-            您目前没有买单，{link("去发布>>>", get_url_to_module("publish_order"), new_window=True)}
+            您目前没有买单，{link("去发布>>>", set_url_params(
+                get_url_to_module("publish_order"), params={"order_type": "buy"}
+            ), new_window=True)}
             """,
             sanitize=False,
         )
@@ -144,7 +146,9 @@ def my_orders() -> None:
             f"""
             ## 卖单
 
-            您目前没有卖单，{link("去发布>>>", get_url_to_module("publish_order"), new_window=True)}
+            您目前没有卖单，{link("去发布>>>", set_url_params(
+                get_url_to_module("publish_order"), params={"order_type": "sell"}
+            ), new_window=True)}
             """,
             sanitize=False,
         )

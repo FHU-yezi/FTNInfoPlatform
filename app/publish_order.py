@@ -11,14 +11,15 @@ from utils.exceptions import (
     PriceIlliegalError,
     TokenNotExistError,
 )
+from utils.login import require_login
 from utils.page import (
     close_page,
     get_token,
+    get_url_params,
     get_url_to_module,
     jump_to,
     set_token,
 )
-from utils.login import require_login
 from utils.widgets import (
     toast_error_and_return,
     toast_success,
@@ -101,12 +102,14 @@ def publish_order() -> None:
         uid = require_login()
         set_token(create_token(uid))
 
+    order_type = "买单" if get_url_params().get("order_type", "buy") == "buy" else "卖单"
+
     put_markdown("# 发布意向单")
     put_select(
         "order_type",
         label="意向类型",
         options=["买单", "卖单"],
-        value="买单",
+        value=order_type,
         help_text="我要买贝 => 买单，我要卖贝 => 卖单",
     )
     put_input(
