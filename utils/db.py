@@ -23,5 +23,12 @@ access_log_db = db.access_log
 
 # 创建索引
 
+order_data_db.create_index([("status", 1)])
+order_data_db.create_index([("order.type", 1)])
+order_data_db.create_index([("user.id", 1)])
+order_data_db.create_index([("order.price.unit", 1)])
+
+token_data_db.create_index([("token", 1)])
+
 # 在 expire_time 时间点过期
 token_data_db.create_index([("expire_time", 1)], expireAfterSeconds=0)
