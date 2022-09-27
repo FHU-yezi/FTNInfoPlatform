@@ -91,6 +91,8 @@ def create_order(
     order_data_db.insert_one(
         {
             "publish_time": get_now_without_mileseconds(),
+            "finish_time": None,
+            "delete_time": None,
             "status": 0,
             "order": {
                 "type": order_type,
@@ -119,13 +121,16 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
     # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
     order_data = get_order_data_from_order_id(order_id)
     total_price: float = round(unit_price * order_data["order"]["amount"]["total"], 2)
-    order_data["order"]["price"] = {
-        "unit": unit_price,
-        "total": total_price,
-    }
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
-        {"$set": order_data},
+        {
+            "$set": {
+                "order.price": {
+                    "unit": unit_price,
+                    "total": total_price,
+                },
+            }
+        },
     )
 
 
@@ -156,7 +161,8 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     }
     # 如果余量为 0，将交易单状态置为已完成
     if remaining_amount == 0:
-        order_data["status"] = 1
+        order_data["status"] = 1  # 已完成
+        order_data["finish_time"] = get_now_without_mileseconds()
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
         {"$set": order_data},
@@ -171,10 +177,14 @@ def delete_order(order_id: str) -> None:
     if order_data["status"] != 0:
         raise OrderStatusError("不能对状态不为交易中的交易单进行删除操作")
     # 将交易单状态置为已删除
-    order_data["status"] = 2
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
-        {"$set": order_data},
+        {
+            "$set": {
+                "status": 2,
+                "delete_time": get_now_without_mileseconds(),
+            },
+        },
     )
 
 

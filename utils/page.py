@@ -20,8 +20,8 @@ def get_url_to_module(module_name: str) -> str:
 
 
 def get_chart_width() -> int:
-    # 850 为宽度上限
-    return min(eval_js("document.body.clientWidth"), 850)
+    # 880 为宽度上限
+    return min(eval_js("document.body.clientWidth"), 880)
 
 
 def get_chart_height() -> int:
