@@ -31,14 +31,15 @@ def get_total_traded_amount() -> int:
                 },
                 {
                     "$group": {
-                        "_id": {
+                        "_id": None,
+                        "result": {
                             "$sum": "$order.amount.total",
                         },
                     }
                 },
             ]
         )
-    )[0]["_id"]
+    )[0]["result"]
 
 
 def get_total_traded_price() -> float:
@@ -52,14 +53,15 @@ def get_total_traded_price() -> float:
                 },
                 {
                     "$group": {
-                        "_id": {
+                        "_id": None,
+                        "result": {
                             "$sum": "$order.price.total",
                         },
                     }
                 },
             ]
         )
-    )[0]["_id"]
+    )[0]["result"]
 
 
 def get_24h_finish_orders_count(order_type: Literal["buy", "sell"]) -> int:

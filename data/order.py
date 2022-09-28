@@ -105,10 +105,17 @@ def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
                             "order.type": order_type,
                         },
                     },
-                    {"$group": {"_id": {"$avg": "$order.price.unit"}}},
+                    {
+                        "$group": {
+                            "_id": None,
+                            "result": {
+                                "$avg": "$order.price.unit",
+                            },
+                        },
+                    },
                 ]
             )
-        )[0]["_id"],
+        )[0]["result"],
         3,
     )
 
