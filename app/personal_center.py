@@ -231,6 +231,7 @@ def personal_center() -> None:
     put_row(
         [
             put_markdown(f"昵称：{user_data['user_name']}"),
+            None,
             put_button(
                 "修改",
                 onclick=lambda: on_change_user_name_button_clicked(uid, old_user_name),
@@ -238,7 +239,7 @@ def personal_center() -> None:
                 small=True,
             ),
         ],
-        size="1fr auto",
+        size="auto 10px 1fr",
     )
     put_markdown(
         f"""
