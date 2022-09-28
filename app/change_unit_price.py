@@ -25,7 +25,7 @@ from utils.page import (
     set_token,
 )
 from utils.login import require_login
-from utils.widgets import toast_error_and_return, toast_success
+from widgets.toast import toast_error_and_return, toast_success
 
 NAME: str = "修改单价"
 DESC: str = "修改意向单的单价"

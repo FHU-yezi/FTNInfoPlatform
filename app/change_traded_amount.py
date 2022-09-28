@@ -30,7 +30,7 @@ from utils.page import (
     jump_to,
     set_token,
 )
-from utils.widgets import toast_error_and_return, toast_success
+from widgets.toast import toast_error_and_return, toast_success
 
 NAME: str = "修改已交易数量"
 DESC: str = "修改意向单的已交易数量"

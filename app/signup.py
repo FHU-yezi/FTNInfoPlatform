@@ -13,7 +13,7 @@ from utils.exceptions import (
 from utils.page import get_base_url, jump_to
 from utils.page import set_token
 from data.token import create_token
-from utils.widgets import (
+from widgets.toast import (
     toast_error_and_return,
     toast_success,
     toast_warn_and_return,

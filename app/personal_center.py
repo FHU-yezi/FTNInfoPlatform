@@ -29,7 +29,7 @@ from utils.exceptions import (
 )
 from utils.login import require_login
 from utils.page import get_token, reload, set_token
-from utils.widgets import (
+from widgets.toast import (
     toast_error_and_return,
     toast_success,
     toast_warn_and_return,

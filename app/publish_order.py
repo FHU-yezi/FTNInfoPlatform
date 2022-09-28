@@ -20,7 +20,7 @@ from utils.page import (
     jump_to,
     set_token,
 )
-from utils.widgets import (
+from widgets.toast import (
     toast_error_and_return,
     toast_success,
     toast_warn_and_return,
