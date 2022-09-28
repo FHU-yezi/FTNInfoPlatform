@@ -1,5 +1,3 @@
-from time import sleep
-
 from pywebio.output import (
     close_popup,
     popup,
@@ -31,8 +29,7 @@ VISIBILITY: bool = True
 def on_delete_confirmed(order_id: str):
     delete_order(order_id)
     toast("删除成功", color="success")
-    sleep(1)
-    reload()
+    reload(delay=1)
 
 
 def on_change_unit_price_button_clicked(order_id: str):
@@ -61,7 +58,10 @@ def on_order_delete_button_clicked(order_id: str):
                 {"label": "确认", "value": "confirm", "color": "warning"},
                 {"label": "取消", "value": "cancel"},
             ],
-            onclick=[lambda: on_delete_confirmed(order_id), close_popup],
+            onclick=[
+                lambda: on_delete_confirmed(order_id),
+                close_popup,
+            ],
         )
 
 

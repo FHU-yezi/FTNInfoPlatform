@@ -75,14 +75,13 @@ def on_change_button_clicked(order_id: str) -> None:
                         "value": "cancel",
                     },
                 ],
-                onclick=[on_change_button_clicked, on_cancel_button_clicked],
+                onclick=[
+                    lambda: None,
+                    lambda: None,
+                ],
             )
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
-
-
-def on_cancel_button_clicked() -> None:
-    close_page()
 
 
 def change_unit_price() -> None:
@@ -163,7 +162,7 @@ def change_unit_price() -> None:
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
-                on_cancel_button_clicked,
+                close_page,
             ],
         )
 

@@ -1,5 +1,3 @@
-from time import sleep
-
 from pywebio.output import (
     close_popup,
     popup,
@@ -106,12 +104,11 @@ def on_change_user_name_confirmed(uid: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_change_user_name_confirmed(uid),
-                    close_popup,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
-        sleep(1)
-        reload()
+        reload(delay=1)
 
 
 def on_change_password_button_clicked(uid: str) -> None:
@@ -193,12 +190,11 @@ def on_change_password_confirmed(uid: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_change_password_confirmed(uid),
-                    close_popup,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
-        sleep(1)
-        reload()
+        reload(delay=1)
 
 
 def on_change_token_expire_time_button_clicked(
@@ -216,8 +212,7 @@ def on_change_token_expire_time_confirmed() -> None:
 def on_logout_button_clicked() -> None:
     expire_token(get_token())
     toast_success("您已安全退出")
-    sleep(1)
-    reload()
+    reload(delay=1)
 
 
 def personal_center() -> None:
@@ -297,4 +292,8 @@ def personal_center() -> None:
         安全退出系统。
         """
     )
-    put_button("退出登录", onclick=on_logout_button_clicked, color="warning")
+    put_button(
+        "退出登录",
+        onclick=on_logout_button_clicked,
+        color="warning",
+    )

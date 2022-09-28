@@ -79,20 +79,19 @@ def on_publish_button_clicked(uid: str) -> None:
                         "color": "success",
                         "disabled": True,
                     },
-                    {"label": "取消", "value": "cancel"},
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
                 ],
                 onclick=[
-                    on_publish_button_clicked,
-                    on_cancel_button_clicked,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
 
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
-
-
-def on_cancel_button_clicked() -> None:
-    close_page()
 
 
 def publish_order() -> None:
@@ -128,7 +127,7 @@ def publish_order() -> None:
             ],
             onclick=[
                 lambda: on_publish_button_clicked(uid),
-                on_cancel_button_clicked,
+                close_page,
             ],
         )
 

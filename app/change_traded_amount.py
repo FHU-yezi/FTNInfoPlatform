@@ -2,7 +2,13 @@ from time import sleep
 from typing import Dict
 
 from bson import ObjectId
-from pywebio.output import put_buttons, put_markdown, put_success, use_scope, clear_scope
+from pywebio.output import (
+    put_buttons,
+    put_markdown,
+    put_success,
+    use_scope,
+    clear_scope,
+)
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
 from utils.data.order import (
     change_order_traded_amount,
@@ -80,16 +86,12 @@ def on_change_button_clicked(order_id: str) -> None:
                     },
                 ],
                 onclick=[
-                    on_change_button_clicked,
-                    on_cancel_button_clicked,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
-
-
-def on_cancel_button_clicked() -> None:
-    close_page()
 
 
 def change_traded_amount() -> None:
@@ -168,7 +170,7 @@ def change_traded_amount() -> None:
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
-                on_cancel_button_clicked,
+                close_page,
             ],
         )
     with use_scope("finish_info", clear=True):
