@@ -2,7 +2,7 @@ from time import sleep
 from typing import Dict
 
 from bson import ObjectId
-from pywebio.output import put_buttons, put_markdown, use_scope
+from pywebio.output import put_buttons, put_markdown, put_success, use_scope, clear_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
 from utils.data.order import (
     change_order_traded_amount,
@@ -15,6 +15,7 @@ from utils.exceptions import (
     OrderIDNotExistError,
     TokenNotExistError,
 )
+from utils.login import require_login
 from utils.page import (
     close_page,
     get_token,
@@ -23,7 +24,6 @@ from utils.page import (
     jump_to,
     set_token,
 )
-from utils.login import require_login
 from utils.widgets import toast_error_and_return, toast_success
 
 NAME: str = "修改已交易数量"
@@ -35,7 +35,7 @@ def get_order_data(order_id: str) -> Dict:
     return order_data_db.find_one({"_id": ObjectId(order_id)})
 
 
-def on_traded_amount_input_changed(_) -> None:
+def on_traded_amount_input_changed() -> None:
     traded_amount: int = pin.traded_amount
     total_amount: int = pin.total_amount
 
@@ -46,6 +46,11 @@ def on_traded_amount_input_changed(_) -> None:
         return
 
     remaining_amount: int = total_amount - traded_amount
+    if remaining_amount == 0:
+        with use_scope("finish_info", clear=True):
+            put_success("在您点击提交按钮后，该交易单将被自动标记为完成，并从您的意向单列表中消失")
+    else:
+        clear_scope("finish_info")
     pin_update("remaining_amount", value=remaining_amount)
 
 
@@ -166,8 +171,10 @@ def change_traded_amount() -> None:
                 on_cancel_button_clicked,
             ],
         )
+    with use_scope("finish_info", clear=True):
+        pass  # 交易单将被结束的提示区域
 
     pin_on_change(
         "traded_amount",
-        onchange=lambda _: on_traded_amount_input_changed(order_id),
+        onchange=lambda _: on_traded_amount_input_changed(),
     )
