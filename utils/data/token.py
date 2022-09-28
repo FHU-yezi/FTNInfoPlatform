@@ -8,7 +8,7 @@ from utils.db import token_data_db, user_data_db
 from utils.exceptions import TokenNotExistError, UIDNotExistError
 from utils.hash import get_hash
 from utils.time_helper import (
-    get_datetime_after_seconds,
+    get_datetime_after_hours,
     get_now_without_mileseconds,
 )
 
@@ -37,8 +37,8 @@ def create_token(uid: str) -> str:
     token_data_db.insert_one(
         {
             "create_time": now_time,
-            "expire_time": get_datetime_after_seconds(
-                now_time, offset=config.token_expire_seconds
+            "expire_time": get_datetime_after_hours(
+                now_time, offset=config.token_expire_hours
             ),
             "user": {
                 "id": uid,
@@ -58,9 +58,9 @@ def update_token_expire_time(token: str) -> None:
         {"token": token},
         {
             "$set": {
-                "exipre_time": get_datetime_after_seconds(
+                "expire_time": get_datetime_after_hours(
                     get_now_without_mileseconds(),
-                    offset=config.token_expire_seconds,
+                    offset=config.token_expire_hours,
                 ),
             },
         },

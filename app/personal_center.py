@@ -246,10 +246,8 @@ def personal_center() -> None:
         small=True,
     )
 
-    now_token_expire_hour: int = (
-        int(user_data["customize_token_expire_seconds"] / 3600)
-        if user_data.get("customize_token_expire_seconds") is not None
-        else int(config.token_expire_seconds / 3600)
+    now_token_expire_hour: int = user_data.get(
+        "customize_token_expire_hours", config.token_expire_hours
     )
     put_markdown(
         f"""
@@ -259,7 +257,7 @@ def personal_center() -> None:
 
         将该值调大可以减少被要求登录的次数，但会略微降低账户安全性。
 
-        默认值为 {int(config.token_expire_seconds / 3600)} 小时。
+        默认值为 {config.token_expire_hours} 小时。
         """
     )
     put_row(
