@@ -117,7 +117,7 @@ def change_unit_price() -> None:
         "order_type",
         "text",
         label="意向类型",
-        value=("买" if order_type == "buy" else "卖"),
+        value=("买单" if order_type == "buy" else "卖单"),
         readonly=True,
     )
     put_input(

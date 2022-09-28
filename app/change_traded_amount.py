@@ -122,8 +122,8 @@ def change_traded_amount() -> None:
     put_input(
         "order_type",
         "text",
-        label="意向类型",
-        value=("买" if order_data["order"]["type"] == "buy" else "卖"),
+        label="意向单类型",
+        value=("买单" if order_data["order"]["type"] == "buy" else "卖单"),
         readonly=True,
     )
     put_input(
