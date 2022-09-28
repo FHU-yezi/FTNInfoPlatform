@@ -137,8 +137,8 @@ def create_order(
     if total_amount is None:
         raise AmountIlliegalError("总量不能为空")
 
-    if not 0 < unit_price <= 3:
-        raise PriceIlliegalError("单价必须在 0.0 - 3.0 之间")
+    if not 0.05 < unit_price <= 0.2:
+        raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
     if not 0 < total_amount <= 10**8:
         raise AmountIlliegalError("总量必须在 0 - 10**8 之间")
     if round(unit_price, 3) != unit_price:  # 大于三位小数
@@ -186,8 +186,8 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
     """
     if unit_price is None:
         raise PriceIlliegalError("单价不能为空")
-    if not 0 < unit_price <= 3:
-        raise PriceIlliegalError("单价必须在 0.0 - 3.0 之间")
+    if not 0.05 < unit_price <= 0.2:
+        raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
     if round(unit_price, 3) != unit_price:  # 大于三位小数
         raise PriceIlliegalError("价格只支持三位小数")
 
