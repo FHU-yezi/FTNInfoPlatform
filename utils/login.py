@@ -39,7 +39,7 @@ def require_login() -> str:
     )
     bind_enter_key_callback(
         "password",
-        lambda _: on_enter_key_pressed(_, uid_container),
+        lambda _: on_login_button_clicked(uid_container),
     )
 
     while True:
@@ -47,10 +47,6 @@ def require_login() -> str:
             sleep(0.1)
         else:
             return uid_container[0]
-
-
-def on_enter_key_pressed(_, uid_container: List[str]) -> None:
-    on_login_button_clicked(uid_container)
 
 
 def on_login_button_clicked(uid_container: List[str]) -> None:
