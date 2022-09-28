@@ -43,8 +43,7 @@ def is_uid_order_type_exist(uid: str, order_type: Literal["buy", "sell"]) -> boo
                 "user.id": uid,
             }
         )
-        != 0
-    )
+    ) != 0
 
 
 def get_order_data_from_order_id(order_id: str) -> Dict:
@@ -142,6 +141,8 @@ def create_order(
         raise PriceIlliegalError("单价必须在 0.0 - 3.0 之间")
     if not 0 < total_amount <= 10**8:
         raise AmountIlliegalError("总量必须在 0 - 10**8 之间")
+    if round(unit_price, 3) != unit_price:  # 大于三位小数
+        raise PriceIlliegalError("价格只支持三位小数")
 
     if is_uid_order_type_exist(uid, order_type):
         raise DuplicatedOrderError("该用户已存在该类型交易单")
@@ -187,6 +188,8 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
         raise PriceIlliegalError("单价不能为空")
     if not 0 < unit_price <= 3:
         raise PriceIlliegalError("单价必须在 0.0 - 3.0 之间")
+    if round(unit_price, 3) != unit_price:  # 大于三位小数
+        raise PriceIlliegalError("价格只支持三位小数")
 
     # 此处如果 Order ID 不存在，会抛出异常
     # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
@@ -281,7 +284,9 @@ def delete_order(order_id: str) -> None:
     )
 
 
-def get_active_orders_list(order_type: Literal["buy", "sell"], limit: int) -> List[Dict]:
+def get_active_orders_list(
+    order_type: Literal["buy", "sell"], limit: int
+) -> List[Dict]:
     """获取交易中的订单列表
 
     Args:
