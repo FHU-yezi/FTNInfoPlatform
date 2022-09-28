@@ -50,20 +50,25 @@ def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
     if get_in_trading_orders_count(order_type) < 5:
         return 0.1  # 数据不足，结果不准确，返回官方指导价
 
-    prices = [
-        x["order"]["price"]["unit"]
-        for x in order_data_db.find(
-            {
-                "status": 0,  # 交易中
-                "order.type": order_type,
-            },
-            {
-                "_id": 0,
-                "order.price.unit": 1,
-            },
+    return round(list(
+        order_data_db.aggregate(
+            [
+                {
+                    "$match": {
+                        "status": 0,  # 交易中
+                        "order.type": order_type,
+                    },
+                },
+                {
+                    "$group": {
+                        "_id": {
+                            "$avg": "$order.price.unit"
+                        }
+                    }
+                }
+            ]
         )
-    ]
-    return round(sum(prices) / len(prices), 3)
+    )[0]["_id"], 3)
 
 
 def create_order(

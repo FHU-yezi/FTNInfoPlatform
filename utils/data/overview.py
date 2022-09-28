@@ -31,7 +31,9 @@ def get_total_traded_amount() -> int:
                 },
                 {
                     "$group": {
-                        "_id": {"$sum": "$order.amount.total"},
+                        "_id": {
+                            "$sum": "$order.amount.total",
+                        },
                     }
                 },
             ]
@@ -50,7 +52,9 @@ def get_total_traded_price() -> float:
                 },
                 {
                     "$group": {
-                        "_id": {"$sum": "$order.price.total"},
+                        "_id": {
+                            "$sum": "$order.price.total",
+                        },
                     }
                 },
             ]
@@ -185,11 +189,7 @@ def get_per_hour_traded_amount(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
@@ -222,11 +222,7 @@ def get_per_day_traded_amount(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
@@ -259,11 +255,7 @@ def get_per_hour_trade_avg_price(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
@@ -296,11 +288,7 @@ def get_per_day_trade_avg_price(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
