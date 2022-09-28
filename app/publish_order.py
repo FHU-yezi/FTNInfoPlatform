@@ -46,7 +46,7 @@ def on_unit_price_or_total_amount_input_changed(_) -> None:
 
 
 def on_order_type_changed(_) -> None:
-    order_type: str = pin.order_type
+    order_type: Literal["buy", "sell"] = "buy" if pin.order_type == "买单" else "sell"
 
     help_text: str = f"市场参考价：{get_FTN_avagae_price(order_type)}"
     pin_update("unit_price", help_text=help_text)
