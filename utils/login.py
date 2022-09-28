@@ -1,18 +1,22 @@
 from time import sleep
-
-from pywebio.output import close_popup, popup, put_buttons
-from pywebio.pin import pin, put_input
 from typing import List
 
+from data.user import log_in
+from pywebio.output import close_popup, popup, put_buttons
+from pywebio.pin import pin, put_input
+from widgets.toast import (
+    toast_error_and_return,
+    toast_success,
+    toast_warn_and_return,
+)
+
 from utils.callback import bind_enter_key_callback
-from utils.data.user import log_in
 from utils.exceptions import (
     PasswordIlliegalError,
     UsernameIlliegalError,
     UsernameOrPasswordWrongError,
 )
 from utils.page import get_url_to_module, jump_to
-from utils.widgets import toast, toast_error_and_return, toast_warn_and_return
 
 
 def require_login() -> str:
@@ -39,7 +43,7 @@ def require_login() -> str:
     )
     bind_enter_key_callback(
         "password",
-        lambda _: on_enter_key_pressed(_, uid_container),
+        lambda _: on_login_button_clicked(uid_container),
     )
 
     while True:
@@ -47,10 +51,6 @@ def require_login() -> str:
             sleep(0.1)
         else:
             return uid_container[0]
-
-
-def on_enter_key_pressed(_, uid_container: List[str]) -> None:
-    on_login_button_clicked(uid_container)
 
 
 def on_login_button_clicked(uid_container: List[str]) -> None:
@@ -66,7 +66,7 @@ def on_login_button_clicked(uid_container: List[str]) -> None:
     except UsernameOrPasswordWrongError:
         toast_error_and_return("用户名或密码错误")
     else:
-        toast("登录成功", color="success")
+        toast_success("登录成功")
         close_popup()
         uid_container.append(uid)
 

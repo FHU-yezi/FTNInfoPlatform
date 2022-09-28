@@ -6,7 +6,7 @@ networks:
 
 services:
   main:
-    image: ftninfoplatform:0.4.0
+    image: ftninfoplatform:0.5.0
     build: .
     ports:
       - "8605:8605"
@@ -25,4 +25,4 @@ services:
         condition: on-failure
         delay: 5s
         max_attempts: 3
-    stop_grace_period: 1s
+    stop_grace_period: 5s

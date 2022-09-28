@@ -1,15 +1,9 @@
-from pywebio.output import (
-    put_button,
-    put_collapse,
-    put_markdown,
-    put_tabs,
-    put_row,
-    put_processbar,
-)
-from utils.data.order import get_orders_list
-from utils.data.token import verify_token
+from data.order import get_active_orders_list
+from data.token import verify_token
+from pywebio.output import put_markdown, put_tabs
 from utils.exceptions import TokenNotExistError
 from utils.page import get_token
+from widgets.order import put_order_item
 
 NAME: str = "意向单列表"
 DESC: str = "查看系统中已有的意向单"
@@ -26,72 +20,34 @@ def order_list() -> None:
     put_markdown("# 意向单列表")
 
     buy_view = []
-    for item in get_orders_list("buy", 20):
+    for buy_order_data in get_active_orders_list("buy", 20):
         buy_view.append(
-            put_collapse(
-                title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
-                content=[
-                    put_button("我的", color="success", small=True, onclick=lambda: None)
-                    if item["user"]["id"] == uid
-                    else put_markdown(""),
-                    put_markdown(
-                        f"""
-                        发布时间：{item['publish_time']}
-                        发布者：{item['user']['name']}
-                        已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
-                        """
-                    ),
-                    put_row(
-                        [
-                            put_markdown("交易进度："),
-                            put_processbar(
-                                f"trade-process-bar-{item['_id']}",
-                                init=round(
-                                    item["order"]["amount"]["traded"]
-                                    / item["order"]["amount"]["total"],
-                                    3,
-                                ),
-                            ),
-                        ],
-                        size="auto 3fr",
-                    ),
-                ],
+            put_order_item(
+                order_id=str(buy_order_data["_id"]),
+                publish_time=buy_order_data["publish_time"],
+                publisher_name=buy_order_data["user"]["name"],
+                unit_price=buy_order_data["order"]["price"]["unit"],
+                total_amount=buy_order_data["order"]["amount"]["total"],
+                traded_amount=buy_order_data["order"]["amount"]["traded"],
+                remaining_amount=buy_order_data["order"]["amount"]["remaining"],
+                is_mine=buy_order_data["user"]["id"] == uid,
             )
         )
     if not buy_view:
         buy_view.append(put_markdown("系统中暂无意向单，去发布一个？"))
 
     sell_view = []
-    for item in get_orders_list("sell", 20):
+    for sell_order_data in get_active_orders_list("sell", 20):
         sell_view.append(
-            put_collapse(
-                title=f"单价 {item['order']['price']['unit']} / 剩余 {item['order']['amount']['remaining']} 个",
-                content=[
-                    put_button("我的", color="success", small=True, onclick=lambda: None)
-                    if item["user"]["id"] == uid
-                    else put_markdown(""),
-                    put_markdown(
-                        f"""
-                        发布时间：{item['publish_time']}
-                        发布者：{item['user']['name']}
-                        已交易 / 总数：{item['order']['amount']['traded']} / {item['order']['amount']['total']}
-                        """
-                    ),
-                    put_row(
-                        [
-                            put_markdown("交易进度："),
-                            put_processbar(
-                                f"trade-process-bar-{item['_id']}",
-                                init=round(
-                                    item["order"]["amount"]["traded"]
-                                    / item["order"]["amount"]["total"],
-                                    3,
-                                ),
-                            ),
-                        ],
-                        size="auto 3fr",
-                    ),
-                ],
+            put_order_item(
+                order_id=str(sell_order_data["_id"]),
+                publish_time=sell_order_data["publish_time"],
+                publisher_name=sell_order_data["user"]["name"],
+                unit_price=sell_order_data["order"]["price"]["unit"],
+                total_amount=sell_order_data["order"]["amount"]["total"],
+                traded_amount=sell_order_data["order"]["amount"]["traded"],
+                remaining_amount=sell_order_data["order"]["amount"]["remaining"],
+                is_mine=sell_order_data["user"]["id"] == uid,
             )
         )
     if not sell_view:

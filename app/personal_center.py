@@ -1,5 +1,3 @@
-from time import sleep
-
 from pywebio.output import (
     close_popup,
     popup,
@@ -12,8 +10,8 @@ from pywebio.output import (
 from pywebio.pin import pin, put_input
 from utils.callback import bind_enter_key_callback
 from utils.config import config
-from utils.data.token import create_token, expire_token, verify_token
-from utils.data.user import (
+from data.token import create_token, expire_token, verify_token
+from data.user import (
     change_password,
     change_user_name,
     get_user_data_from_uid,
@@ -31,7 +29,7 @@ from utils.exceptions import (
 )
 from utils.login import require_login
 from utils.page import get_token, reload, set_token
-from utils.widgets import (
+from widgets.toast import (
     toast_error_and_return,
     toast_success,
     toast_warn_and_return,
@@ -106,12 +104,11 @@ def on_change_user_name_confirmed(uid: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_change_user_name_confirmed(uid),
-                    close_popup,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
-        sleep(1)
-        reload()
+        reload(delay=1)
 
 
 def on_change_password_button_clicked(uid: str) -> None:
@@ -193,12 +190,11 @@ def on_change_password_confirmed(uid: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_change_password_confirmed(uid),
-                    close_popup,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
-        sleep(1)
-        reload()
+        reload(delay=1)
 
 
 def on_change_token_expire_time_button_clicked(
@@ -211,6 +207,12 @@ def on_change_token_expire_time_button_clicked(
 def on_change_token_expire_time_confirmed() -> None:
     # TODO
     pass
+
+
+def on_logout_button_clicked() -> None:
+    expire_token(get_token())
+    toast_success("您已安全退出")
+    reload(delay=1)
 
 
 def personal_center() -> None:
@@ -229,6 +231,7 @@ def personal_center() -> None:
     put_row(
         [
             put_markdown(f"昵称：{user_data['user_name']}"),
+            None,
             put_button(
                 "修改",
                 onclick=lambda: on_change_user_name_button_clicked(uid, old_user_name),
@@ -236,9 +239,14 @@ def personal_center() -> None:
                 small=True,
             ),
         ],
-        size="1fr auto",
+        size="auto 10px 1fr",
     )
-    put_markdown(f"注册时间：{user_data['signup_time']}")
+    put_markdown(
+        f"""
+        UID：{uid}
+        注册时间：{user_data['signup_time']}
+        """
+    )
     put_button(
         "修改密码",
         onclick=lambda: on_change_password_button_clicked(uid),
@@ -246,10 +254,8 @@ def personal_center() -> None:
         small=True,
     )
 
-    now_token_expire_hour: int = (
-        int(user_data["customize_token_expire_seconds"] / 3600)
-        if user_data.get("customize_token_expire_seconds") is not None
-        else int(config.token_expire_seconds / 3600)
+    now_token_expire_hour: int = user_data.get(
+        "customize_token_expire_hours", config.token_expire_hours
     )
     put_markdown(
         f"""
@@ -259,7 +265,7 @@ def personal_center() -> None:
 
         将该值调大可以减少被要求登录的次数，但会略微降低账户安全性。
 
-        默认值为 {int(config.token_expire_seconds / 3600)} 小时。
+        默认值为 {config.token_expire_hours} 小时。
         """
     )
     put_row(
@@ -277,5 +283,18 @@ def personal_center() -> None:
             ),
             None,
         ],
-        size="120px auto auto",
+        size="140px auto auto",
+    )
+
+    put_markdown(
+        """
+        # 退出登录
+
+        安全退出系统。
+        """
+    )
+    put_button(
+        "退出登录",
+        onclick=on_logout_button_clicked,
+        color="warning",
     )

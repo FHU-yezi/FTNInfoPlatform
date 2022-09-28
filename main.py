@@ -1,3 +1,4 @@
+from signal import SIGTERM, signal
 from typing import Callable, List
 
 from pywebio import start_server
@@ -5,11 +6,16 @@ from pywebio.output import put_markdown, put_warning
 
 from utils.config import config
 from utils.html import link
+from utils.log import access_logger
 from utils.module_finder import Module, get_all_modules_info
 from utils.page import get_url_to_module
 from utils.patch import patch_all
 
 modules_list = get_all_modules_info(config.base_path)
+
+# 注册信号事件回调
+# 在收到 SIGTERM 时执行访问日志强制刷新，之后退出
+signal(SIGTERM, lambda _, __: access_logger.force_refresh())
 
 
 def get_jump_link(module_name: str) -> str:

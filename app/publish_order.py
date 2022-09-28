@@ -3,8 +3,8 @@ from typing import Literal
 
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
-from utils.data.order import create_order, get_FTN_avagae_price
-from utils.data.token import create_token, verify_token
+from data.order import create_order, get_FTN_avagae_price
+from data.token import create_token, verify_token
 from utils.exceptions import (
     AmountIlliegalError,
     DuplicatedOrderError,
@@ -20,7 +20,7 @@ from utils.page import (
     jump_to,
     set_token,
 )
-from utils.widgets import (
+from widgets.toast import (
     toast_error_and_return,
     toast_success,
     toast_warn_and_return,
@@ -46,7 +46,7 @@ def on_unit_price_or_total_amount_input_changed(_) -> None:
 
 
 def on_order_type_changed(_) -> None:
-    order_type: str = pin.order_type
+    order_type: Literal["buy", "sell"] = "buy" if pin.order_type == "买单" else "sell"
 
     help_text: str = f"市场参考价：{get_FTN_avagae_price(order_type)}"
     pin_update("unit_price", help_text=help_text)
@@ -79,20 +79,19 @@ def on_publish_button_clicked(uid: str) -> None:
                         "color": "success",
                         "disabled": True,
                     },
-                    {"label": "取消", "value": "cancel"},
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
                 ],
                 onclick=[
-                    on_publish_button_clicked,
-                    on_cancel_button_clicked,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
 
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
-
-
-def on_cancel_button_clicked() -> None:
-    close_page()
 
 
 def publish_order() -> None:
@@ -128,7 +127,7 @@ def publish_order() -> None:
             ],
             onclick=[
                 lambda: on_publish_button_clicked(uid),
-                on_cancel_button_clicked,
+                close_page,
             ],
         )
 

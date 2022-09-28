@@ -9,5 +9,5 @@ def get_today_in_datetime_obj() -> datetime:
     return datetime.fromisoformat(date.today().strftime(r"%Y-%m-%d"))
 
 
-def get_datetime_after_seconds(datetime_obj: datetime, offset: int) -> datetime:
-    return datetime_obj + timedelta(seconds=offset)
+def get_datetime_after_hours(datetime_obj: datetime, offset: int) -> datetime:
+    return datetime_obj + timedelta(hours=offset)

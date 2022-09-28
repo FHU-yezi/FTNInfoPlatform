@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Any, Dict, Optional
 
 from pywebio.session import eval_js, run_js
@@ -19,13 +20,17 @@ def get_url_to_module(module_name: str) -> str:
     return get_base_url() + f"?app={module_name}"
 
 
-def get_chart_width() -> int:
+def get_chart_width(in_tab: bool = False) -> int:
     # 880 为宽度上限
-    return min(eval_js("document.body.clientWidth"), 880)
+    result: int = min(eval_js("document.body.clientWidth"), 880)
+    # Tab 两侧边距共 47
+    if in_tab:
+        result -= 47
+    return result
 
 
 def get_chart_height() -> int:
-    return int(get_chart_width() / 1.5)
+    return int(get_chart_width() / 2)
 
 
 def get_token() -> Optional[str]:
@@ -45,7 +50,9 @@ def jump_to(url: str) -> None:
     run_js(f"window.location.href = '{url}'")
 
 
-def reload() -> None:
+def reload(delay: int = 0) -> None:
+    if delay:
+        sleep(delay)
     run_js("location.reload()")
 
 

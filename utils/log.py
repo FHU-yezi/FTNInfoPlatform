@@ -1,17 +1,25 @@
 from datetime import datetime
-from typing import Optional
+from queue import Queue
+from threading import Thread
+from time import sleep
+from typing import Dict, List, Optional
 
 from utils.db import access_log_db
 
 
 class AccessLogger:
-    def __init__(self, db) -> None:
+    def __init__(self, db, save_interval: int) -> None:
         self._db = db
+        self._save_interval = save_interval
+        self._data_queue: Queue = Queue()
+        self._save_thread = Thread(target=self._save_to_db)
+
+        self._save_thread.start()
 
     def log(
         self, module: str, ua: str, ip: str, protocol: str, token: Optional[str]
     ) -> None:
-        self._db.insert_one(
+        self._data_queue.put(
             {
                 "time": datetime.now(),
                 "module": module,
@@ -33,5 +41,24 @@ class AccessLogger:
             token=token,
         )
 
+    def _save_to_db(self):
+        while True:
+            if not self._data_queue.empty():
+                data_to_save: List[Dict] = []
+                while not self._data_queue.empty():
+                    data_to_save.append(self._data_queue.get())
+                self._db.insert_many(data_to_save)
+                data_to_save.clear()
+            sleep(self._save_interval)
 
-access_logger: AccessLogger = AccessLogger(db=access_log_db)
+    def force_refresh(self):
+        data_to_save: List[Dict] = []
+        while not self._data_queue.empty():
+            data_to_save.append(self._data_queue.get())
+        self._db.insert_many(data_to_save)
+
+
+access_logger: AccessLogger = AccessLogger(
+    db=access_log_db,
+    save_interval=30,
+)

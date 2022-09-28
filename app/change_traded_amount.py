@@ -2,19 +2,26 @@ from time import sleep
 from typing import Dict
 
 from bson import ObjectId
-from pywebio.output import put_buttons, put_markdown, use_scope
+from pywebio.output import (
+    put_buttons,
+    put_markdown,
+    put_success,
+    use_scope,
+    clear_scope,
+)
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
-from utils.data.order import (
+from data.order import (
     change_order_traded_amount,
     get_order_data_from_order_id,
 )
-from utils.data.token import create_token, verify_token
+from data.token import create_token, verify_token
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
     OrderIDNotExistError,
     TokenNotExistError,
 )
+from utils.login import require_login
 from utils.page import (
     close_page,
     get_token,
@@ -23,8 +30,7 @@ from utils.page import (
     jump_to,
     set_token,
 )
-from utils.login import require_login
-from utils.widgets import toast_error_and_return, toast_success
+from widgets.toast import toast_error_and_return, toast_success
 
 NAME: str = "修改已交易数量"
 DESC: str = "修改意向单的已交易数量"
@@ -35,7 +41,7 @@ def get_order_data(order_id: str) -> Dict:
     return order_data_db.find_one({"_id": ObjectId(order_id)})
 
 
-def on_traded_amount_input_changed(_) -> None:
+def on_traded_amount_input_changed() -> None:
     traded_amount: int = pin.traded_amount
     total_amount: int = pin.total_amount
 
@@ -46,6 +52,11 @@ def on_traded_amount_input_changed(_) -> None:
         return
 
     remaining_amount: int = total_amount - traded_amount
+    if remaining_amount == 0:
+        with use_scope("finish_info", clear=True):
+            put_success("在您点击提交按钮后，该交易单将被自动标记为完成，并从您的意向单列表中消失")
+    else:
+        clear_scope("finish_info")
     pin_update("remaining_amount", value=remaining_amount)
 
 
@@ -75,16 +86,12 @@ def on_change_button_clicked(order_id: str) -> None:
                     },
                 ],
                 onclick=[
-                    on_change_button_clicked,
-                    on_cancel_button_clicked,
+                    lambda: None,
+                    lambda: None,
                 ],
             )
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
-
-
-def on_cancel_button_clicked() -> None:
-    close_page()
 
 
 def change_traded_amount() -> None:
@@ -117,8 +124,8 @@ def change_traded_amount() -> None:
     put_input(
         "order_type",
         "text",
-        label="意向类型",
-        value=("买" if order_data["order"]["type"] == "buy" else "卖"),
+        label="意向单类型",
+        value=("买单" if order_data["order"]["type"] == "buy" else "卖单"),
         readonly=True,
     )
     put_input(
@@ -163,11 +170,13 @@ def change_traded_amount() -> None:
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
-                on_cancel_button_clicked,
+                close_page,
             ],
         )
+    with use_scope("finish_info", clear=True):
+        pass  # 交易单将被结束的提示区域
 
     pin_on_change(
         "traded_amount",
-        onchange=lambda _: on_traded_amount_input_changed(order_id),
+        onchange=lambda _: on_traded_amount_input_changed(),
     )

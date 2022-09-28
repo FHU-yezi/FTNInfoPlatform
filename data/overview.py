@@ -31,7 +31,9 @@ def get_total_traded_amount() -> int:
                 },
                 {
                     "$group": {
-                        "_id": {"$sum": "$order.amount.total"},
+                        "_id": {
+                            "$sum": "$order.amount.total",
+                        },
                     }
                 },
             ]
@@ -50,7 +52,9 @@ def get_total_traded_price() -> float:
                 },
                 {
                     "$group": {
-                        "_id": {"$sum": "$order.price.total"},
+                        "_id": {
+                            "$sum": "$order.price.total",
+                        },
                     }
                 },
             ]
@@ -80,7 +84,7 @@ def get_24h_delete_orders_count(order_type: Literal["buy", "sell"]) -> int:
     )
 
 
-def get_24h_traded_FTN_amount(order_type: Literal["str", "sell"]) -> int:
+def get_24h_traded_FTN_amount(order_type: Literal["buy", "sell"]) -> int:
     return list(
         order_data_db.aggregate(
             [
@@ -105,7 +109,7 @@ def get_24h_traded_FTN_amount(order_type: Literal["str", "sell"]) -> int:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_total_price(order_type: Literal["str", "sell"]) -> float:
+def get_24h_traded_FTN_total_price(order_type: Literal["buy", "sell"]) -> float:
     return list(
         order_data_db.aggregate(
             [
@@ -130,7 +134,7 @@ def get_24h_traded_FTN_total_price(order_type: Literal["str", "sell"]) -> float:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_avg_price(order_type: Literal["str", "sell"]) -> float:
+def get_24h_traded_FTN_avg_price(order_type: Literal["buy", "sell"]) -> float:
     return round(
         list(
             order_data_db.aggregate(
@@ -185,11 +189,7 @@ def get_per_hour_traded_amount(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
@@ -222,11 +222,7 @@ def get_per_day_traded_amount(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
@@ -259,11 +255,7 @@ def get_per_hour_trade_avg_price(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )
@@ -296,11 +288,7 @@ def get_per_day_trade_avg_price(
                         },
                     }
                 },
-                {
-                    "$sort": {
-                        "_id": 1
-                    }
-                },
+                {"$sort": {"_id": 1}},
             ]
         )
     )

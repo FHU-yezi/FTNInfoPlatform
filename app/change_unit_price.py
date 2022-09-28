@@ -4,12 +4,12 @@ from typing import Dict
 from bson import ObjectId
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
-from utils.data.order import (
+from data.order import (
     change_order_unit_price,
     get_FTN_avagae_price,
     get_order_data_from_order_id,
 )
-from utils.data.token import create_token, verify_token
+from data.token import create_token, verify_token
 from utils.db import order_data_db
 from utils.exceptions import (
     OrderIDNotExistError,
@@ -25,7 +25,7 @@ from utils.page import (
     set_token,
 )
 from utils.login import require_login
-from utils.widgets import toast_error_and_return, toast_success
+from widgets.toast import toast_error_and_return, toast_success
 
 NAME: str = "修改单价"
 DESC: str = "修改意向单的单价"
@@ -75,14 +75,13 @@ def on_change_button_clicked(order_id: str) -> None:
                         "value": "cancel",
                     },
                 ],
-                onclick=[on_change_button_clicked, on_cancel_button_clicked],
+                onclick=[
+                    lambda: None,
+                    lambda: None,
+                ],
             )
         sleep(1)
         jump_to(get_url_to_module("my_orders"))
-
-
-def on_cancel_button_clicked() -> None:
-    close_page()
 
 
 def change_unit_price() -> None:
@@ -117,7 +116,7 @@ def change_unit_price() -> None:
         "order_type",
         "text",
         label="意向类型",
-        value=("买" if order_type == "buy" else "卖"),
+        value=("买单" if order_type == "buy" else "卖单"),
         readonly=True,
     )
     put_input(
@@ -163,7 +162,7 @@ def change_unit_price() -> None:
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
-                on_cancel_button_clicked,
+                close_page,
             ],
         )
 

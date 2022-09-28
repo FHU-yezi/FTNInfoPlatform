@@ -2,7 +2,7 @@ from time import sleep
 
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, put_input
-from utils.data.user import sign_up
+from data.user import sign_up
 from utils.exceptions import (
     DuplicatedUsernameError,
     PasswordIlliegalError,
@@ -12,8 +12,8 @@ from utils.exceptions import (
 )
 from utils.page import get_base_url, jump_to
 from utils.page import set_token
-from utils.data.token import create_token
-from utils.widgets import (
+from data.token import create_token
+from widgets.toast import (
     toast_error_and_return,
     toast_success,
     toast_warn_and_return,
@@ -62,17 +62,16 @@ def on_signup_button_clicked() -> None:
                     },
                     {"label": "取消", "value": "cancel"},
                 ],
-                onclick=[on_signup_button_clicked, on_cancel_button_clicked],
+                onclick=[
+                    lambda: None,
+                    lambda: None,
+                ],
             )
         # 为新注册的用户生成 Token
         # 免去用户登录流程
         set_token(create_token(uid))
         sleep(1)
         jump_to(get_base_url())
-
-
-def on_cancel_button_clicked() -> None:
-    jump_to(get_base_url())
 
 
 def signup() -> None:
@@ -90,5 +89,8 @@ def signup() -> None:
                 {"label": "注册", "value": "signup", "color": "success"},
                 {"label": "取消", "value": "cancel"},
             ],
-            onclick=[on_signup_button_clicked, on_cancel_button_clicked],
+            onclick=[
+                on_signup_button_clicked,
+                lambda: jump_to(get_base_url()),
+            ],
         )
