@@ -50,25 +50,22 @@ def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
     if get_in_trading_orders_count(order_type) < 5:
         return 0.1  # 数据不足，结果不准确，返回官方指导价
 
-    return round(list(
-        order_data_db.aggregate(
-            [
-                {
-                    "$match": {
-                        "status": 0,  # 交易中
-                        "order.type": order_type,
+    return round(
+        list(
+            order_data_db.aggregate(
+                [
+                    {
+                        "$match": {
+                            "status": 0,  # 交易中
+                            "order.type": order_type,
+                        },
                     },
-                },
-                {
-                    "$group": {
-                        "_id": {
-                            "$avg": "$order.price.unit"
-                        }
-                    }
-                }
-            ]
-        )
-    )[0]["_id"], 3)
+                    {"$group": {"_id": {"$avg": "$order.price.unit"}}},
+                ]
+            )
+        )[0]["_id"],
+        3,
+    )
 
 
 def create_order(
@@ -126,16 +123,16 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
     # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
     order_data = get_order_data_from_order_id(order_id)
     total_price: float = round(unit_price * order_data["order"]["amount"]["total"], 2)
+
+    data_to_update: Dict = {
+        "order.price": {
+            "unit": unit_price,
+            "total": total_price,
+        },
+    }
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
-        {
-            "$set": {
-                "order.price": {
-                    "unit": unit_price,
-                    "total": total_price,
-                },
-            }
-        },
+        {"$set": data_to_update},
     )
 
 
@@ -155,22 +152,25 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     remaining_amount: int = total_amount - traded_amount
     unit_price: float = order_data["order"]["price"]["unit"]
     total_price: float = round(unit_price * total_amount, 2)
-    order_data["order"]["price"] = {
-        "unit": unit_price,
-        "total": total_price,
-    }
-    order_data["order"]["amount"] = {
-        "total": total_amount,
-        "traded": traded_amount,
-        "remaining": remaining_amount,
+
+    data_to_update: Dict = {
+        "order.price": {
+            "unit": unit_price,
+            "total": total_price,
+        },
+        "order.amount": {
+            "total": total_amount,
+            "traded": traded_amount,
+            "remaining": remaining_amount,
+        },
     }
     # 如果余量为 0，将交易单状态置为已完成
     if remaining_amount == 0:
-        order_data["status"] = 1  # 已完成
-        order_data["finish_time"] = get_now_without_mileseconds()
+        data_to_update["status"] = 1  # 已完成
+        data_to_update["finish_time"] = get_now_without_mileseconds()
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
-        {"$set": order_data},
+        {"$set": data_to_update},
     )
 
 
@@ -181,15 +181,15 @@ def delete_order(order_id: str) -> None:
 
     if order_data["status"] != 0:
         raise OrderStatusError("不能对状态不为交易中的交易单进行删除操作")
-    # 将交易单状态置为已删除
+
+    # 将交易单标记为已删除
+    data_to_update: Dict = {
+        "status": 2,  # 已删除
+        "delete_time": get_now_without_mileseconds(),
+    }
     order_data_db.update_one(
         {"_id": ObjectId(order_id)},
-        {
-            "$set": {
-                "status": 2,
-                "delete_time": get_now_without_mileseconds(),
-            },
-        },
+        {"$set": data_to_update},
     )
 
 

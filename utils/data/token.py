@@ -1,6 +1,6 @@
 from datetime import datetime
 from time import time
-
+from typing import Dict
 from bson import ObjectId
 from utils.config import config
 from utils.data.user import update_user_last_active_time
@@ -54,16 +54,15 @@ def update_token_expire_time(token: str) -> None:
     if not token_data:
         raise TokenNotExistError("Token 不存在或已过期")
 
+    data_to_update: Dict = {
+        "expire_time": get_datetime_after_hours(
+            get_now_without_mileseconds(),
+            offset=config.token_expire_hours,
+        ),
+    }
     token_data_db.update_one(
         {"token": token},
-        {
-            "$set": {
-                "expire_time": get_datetime_after_hours(
-                    get_now_without_mileseconds(),
-                    offset=config.token_expire_hours,
-                ),
-            },
-        },
+        {"$set": data_to_update},
     )
 
 
@@ -74,6 +73,7 @@ def verify_token(token: str) -> str:
     token_data = token_data_db.find_one({"token": token})
     if not token_data:
         raise TokenNotExistError("Token 不存在或已过期")
+
     uid: str = token_data["user"]["id"]
     update_token_expire_time(token)
     update_user_last_active_time(uid)

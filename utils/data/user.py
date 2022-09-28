@@ -104,6 +104,7 @@ def log_in(user_name: str, password: str) -> str:
     )
     if not user_data:  # 未查询到相应记录
         raise UsernameOrPasswordWrongError("用户名或密码错误")
+
     uid: str = str(user_data["_id"])
     update_user_last_active_time(uid)
     return uid
@@ -114,13 +115,12 @@ def update_user_last_active_time(uid: str) -> None:
     if not user_data:
         raise UIDNotExistError("UID 不存在")
 
+    data_to_update: Dict = {
+        "last_active_time": get_now_without_mileseconds(),
+    }
     user_data_db.update_one(
         {"_id": ObjectId(uid)},
-        {
-            "$set": {
-                "last_active_time": get_now_without_mileseconds(),
-            },
-        },
+        {"$set": data_to_update},
     )
 
 
@@ -139,13 +139,13 @@ def change_user_name(uid: str, new_user_name: str) -> None:
     old_user_name: str = user_data["user_name"]
     if old_user_name == new_user_name:
         raise UsernameNotChangedError("新昵称不能与旧昵称相同")
+
+    data_to_update: Dict = {
+        "user_name": new_user_name,
+    }
     user_data_db.update_one(
         {"_id": ObjectId(uid)},
-        {
-            "$set": {
-                "user_name": new_user_name,
-            },
-        },
+        {"$set": data_to_update},
     )
 
 
@@ -170,13 +170,13 @@ def change_password(
     hashed_new_password: str = get_hash(new_password)
     if hashed_old_password == hashed_new_password:
         raise PasswordNotChangedError("新密码不能与旧密码相同")
+
+    data_to_update: Dict = {
+        "password": hashed_new_password,
+    }
     user_data_db.update_one(
         {"_id": ObjectId(uid)},
-        {
-            "$set": {
-                "password": hashed_new_password,
-            },
-        },
+        {"$set": data_to_update},
     )
 
     # 将用户当前的 Token 过期，该部分由调用方完成
