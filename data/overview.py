@@ -84,7 +84,7 @@ def get_24h_delete_orders_count(order_type: Literal["buy", "sell"]) -> int:
     )
 
 
-def get_24h_traded_FTN_amount(order_type: Literal["str", "sell"]) -> int:
+def get_24h_traded_FTN_amount(order_type: Literal["buy", "sell"]) -> int:
     return list(
         order_data_db.aggregate(
             [
@@ -109,7 +109,7 @@ def get_24h_traded_FTN_amount(order_type: Literal["str", "sell"]) -> int:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_total_price(order_type: Literal["str", "sell"]) -> float:
+def get_24h_traded_FTN_total_price(order_type: Literal["buy", "sell"]) -> float:
     return list(
         order_data_db.aggregate(
             [
@@ -134,7 +134,7 @@ def get_24h_traded_FTN_total_price(order_type: Literal["str", "sell"]) -> float:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_avg_price(order_type: Literal["str", "sell"]) -> float:
+def get_24h_traded_FTN_avg_price(order_type: Literal["buy", "sell"]) -> float:
     return round(
         list(
             order_data_db.aggregate(
