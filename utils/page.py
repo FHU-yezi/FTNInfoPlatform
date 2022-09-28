@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Any, Dict, Optional
 
 from pywebio.session import eval_js, run_js
@@ -45,7 +46,9 @@ def jump_to(url: str) -> None:
     run_js(f"window.location.href = '{url}'")
 
 
-def reload() -> None:
+def reload(delay: int = 0) -> None:
+    if delay:
+        sleep(delay)
     run_js("location.reload()")
 
 
