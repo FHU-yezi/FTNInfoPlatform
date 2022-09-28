@@ -41,7 +41,8 @@ def data_overview() -> None:
                         buy_x,
                         buy_y,
                         "24 小时买单价格",
-                        {"yaxis_opts": opts.AxisOpts(min_=0.05, max_=0.12)},
+                        {"yaxis_opts": opts.AxisOpts(min_=0.08, max_=0.12)},
+                        in_tab=True,
                     )
                 ),
             },
@@ -52,9 +53,8 @@ def data_overview() -> None:
                         sell_x,
                         sell_y,
                         "24 小时卖单价格",
-                        {
-                            "yaxis_opts": opts.AxisOpts(min_=0.05, max_=0.12),
-                        },
+                        {"yaxis_opts": opts.AxisOpts(min_=0.08, max_=0.12)},
+                        in_tab=True,
                     )
                 ),
             },

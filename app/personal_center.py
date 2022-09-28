@@ -282,7 +282,7 @@ def personal_center() -> None:
             ),
             None,
         ],
-        size="120px auto auto",
+        size="140px auto auto",
     )
 
     put_markdown(

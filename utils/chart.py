@@ -11,11 +11,18 @@ from utils.page import get_chart_height, get_chart_width
 CurrentConfig.ONLINE_HOST = config.deploy.pyecharts_cdn
 
 
-def single_line_chart(x: List, y: List, y_name: str, global_opts: List[Dict[str, Any]]):
+def single_line_chart(
+    x: List,
+    y: List,
+    y_name: str,
+    global_opts: List[Dict[str, Any]],
+    in_tab: bool = False,
+):
     return (
         Line(
             init_opts=opts.InitOpts(
-                width=f"{get_chart_width()}px", height=f"{get_chart_height()}px"
+                width=f"{get_chart_width(in_tab=in_tab)}px",
+                height=f"{get_chart_height()}px",
             )
         )
         .add_xaxis(x)
@@ -31,11 +38,13 @@ def double_line_chart(
     y2: List,
     y2_name: str,
     global_opts: List[Dict[str, Any]],
+    in_tab: bool = False,
 ):
     return (
         Line(
             init_opts=opts.InitOpts(
-                width=f"{get_chart_width()}px", height=f"{get_chart_height()}px"
+                width=f"{get_chart_width(in_tab=in_tab)}px",
+                height=f"{get_chart_height()}px",
             )
         )
         .add_xaxis(x)
@@ -45,11 +54,17 @@ def double_line_chart(
     ).render_notebook()
 
 
-def pie_chart(series_name: str, data_pair: List, global_opts: List[Dict[str, Any]]):
+def pie_chart(
+    series_name: str,
+    data_pair: List,
+    global_opts: List[Dict[str, Any]],
+    in_tab: bool = False,
+):
     return (
         Pie(
             init_opts=opts.InitOpts(
-                width=f"{get_chart_width()}px", height=f"{get_chart_height()}px"
+                width=f"{get_chart_width(in_tab=in_tab)}px",
+                height=f"{get_chart_height()}px",
             )
         )
         .add(series_name, data_pair)
