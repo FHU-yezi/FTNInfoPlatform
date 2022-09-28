@@ -1,7 +1,7 @@
 import pyecharts.options as opts
 from pywebio.output import put_html, put_markdown, put_tabs
 from utils.chart import single_line_chart
-from utils.data.overview import (
+from data.overview import (
     get_active_orders_count,
     get_finished_orders_count,
     get_per_hour_trade_avg_price,

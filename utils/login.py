@@ -5,7 +5,7 @@ from pywebio.pin import pin, put_input
 from typing import List
 
 from utils.callback import bind_enter_key_callback
-from utils.data.user import log_in
+from data.user import log_in
 from utils.exceptions import (
     PasswordIlliegalError,
     UsernameIlliegalError,

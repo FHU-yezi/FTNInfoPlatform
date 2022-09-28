@@ -10,8 +10,8 @@ from pywebio.output import (
 from pywebio.pin import pin, put_input
 from utils.callback import bind_enter_key_callback
 from utils.config import config
-from utils.data.token import create_token, expire_token, verify_token
-from utils.data.user import (
+from data.token import create_token, expire_token, verify_token
+from data.user import (
     change_password,
     change_user_name,
     get_user_data_from_uid,

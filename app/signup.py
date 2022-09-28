@@ -2,7 +2,7 @@ from time import sleep
 
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, put_input
-from utils.data.user import sign_up
+from data.user import sign_up
 from utils.exceptions import (
     DuplicatedUsernameError,
     PasswordIlliegalError,
@@ -12,7 +12,7 @@ from utils.exceptions import (
 )
 from utils.page import get_base_url, jump_to
 from utils.page import set_token
-from utils.data.token import create_token
+from data.token import create_token
 from utils.widgets import (
     toast_error_and_return,
     toast_success,

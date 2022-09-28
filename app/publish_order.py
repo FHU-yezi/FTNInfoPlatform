@@ -3,8 +3,8 @@ from typing import Literal
 
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
-from utils.data.order import create_order, get_FTN_avagae_price
-from utils.data.token import create_token, verify_token
+from data.order import create_order, get_FTN_avagae_price
+from data.token import create_token, verify_token
 from utils.exceptions import (
     AmountIlliegalError,
     DuplicatedOrderError,

@@ -3,7 +3,7 @@ from time import time
 from typing import Dict
 from bson import ObjectId
 from utils.config import config
-from utils.data.user import update_user_last_active_time
+from data.user import update_user_last_active_time
 from utils.db import token_data_db, user_data_db
 from utils.exceptions import TokenNotExistError, UIDNotExistError
 from utils.hash import get_hash

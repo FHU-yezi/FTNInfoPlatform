@@ -1,7 +1,7 @@
 from typing import Dict, List, Literal
 
 from bson import ObjectId
-from utils.data.user import get_user_data_from_uid
+from data.user import get_user_data_from_uid
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
