@@ -245,7 +245,12 @@ def personal_center() -> None:
         ],
         size="1fr auto",
     )
-    put_markdown(f"注册时间：{user_data['signup_time']}")
+    put_markdown(
+        f"""
+        UID：{uid}
+        注册时间：{user_data['signup_time']}
+        """
+    )
     put_button(
         "修改密码",
         onclick=lambda: on_change_password_button_clicked(uid),
