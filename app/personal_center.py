@@ -213,6 +213,13 @@ def on_change_token_expire_time_confirmed() -> None:
     pass
 
 
+def on_logout_button_clicked() -> None:
+    expire_token(get_token())
+    toast_success("您已安全退出")
+    sleep(1)
+    reload()
+
+
 def personal_center() -> None:
     try:
         uid = verify_token(get_token())
@@ -277,3 +284,12 @@ def personal_center() -> None:
         ],
         size="120px auto auto",
     )
+
+    put_markdown(
+        """
+        # 退出登录
+
+        安全退出系统。
+        """
+    )
+    put_button("退出登录", onclick=on_logout_button_clicked, color="warning")
