@@ -20,14 +20,14 @@ def data_overview() -> None:
 
     put_markdown(
         f"""
+        24 小时平均买 / 卖价：{get_24h_traded_FTN_avg_price("buy")} / {get_24h_traded_FTN_avg_price("sell")}
         交易中意向单：{get_in_trading_orders_count("all")} 条
         已完成意向单：{get_finished_orders_count("all")} 条
         总交易量：{get_total_traded_amount()} 简书贝 / {get_total_traded_price()} 元
-        24 小时平均买 / 卖价：{get_24h_traded_FTN_avg_price("buy")} / {get_24h_traded_FTN_avg_price("sell")}
         """
     )
 
-    put_markdown("# 24 小时意向价格")
+    put_markdown("## 24 小时交易价格")
     per_hour_buy_avg_price = get_per_hour_trade_avg_price("buy", 24)
     per_hour_sell_avg_price = get_per_hour_trade_avg_price("sell", 24)
     print(per_hour_buy_avg_price, per_hour_sell_avg_price)
@@ -44,7 +44,10 @@ def data_overview() -> None:
                         buy_x,
                         buy_y,
                         "24 小时买单价格",
-                        {"yaxis_opts": opts.AxisOpts(min_=0.08, max_=0.12)},
+                        {
+                            "yaxis_opts": opts.AxisOpts(min_=0.08, max_=0.12),
+                            "legend_opts": opts.LegendOpts(is_show=False),
+                        },
                         in_tab=True,
                     )
                 ),
@@ -56,7 +59,10 @@ def data_overview() -> None:
                         sell_x,
                         sell_y,
                         "24 小时卖单价格",
-                        {"yaxis_opts": opts.AxisOpts(min_=0.08, max_=0.12)},
+                        {
+                            "yaxis_opts": opts.AxisOpts(min_=0.08, max_=0.12),
+                            "legend_opts": opts.LegendOpts(is_show=False),
+                        },
                         in_tab=True,
                     )
                 ),
