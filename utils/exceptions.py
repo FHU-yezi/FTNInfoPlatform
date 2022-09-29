@@ -60,3 +60,11 @@ class DuplicatedOrderError(Exception):
 
 class OrderStatusError(Exception):
     pass
+
+
+class UserURLIlliegalError(Exception):
+    pass
+
+
+class DuplicatedUserURLError(Exception):
+    pass
