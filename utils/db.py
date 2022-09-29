@@ -17,6 +17,7 @@ def get_collection(collection_name: str):
 
 
 order_data_db = db.order_data
+trade_data_db = db.trade_data
 user_data_db = db.user_data
 token_data_db = db.token_data
 access_log_db = db.access_log
@@ -27,6 +28,11 @@ order_data_db.create_index([("status", 1)])
 order_data_db.create_index([("order.type", 1)])
 order_data_db.create_index([("user.id", 1)])
 order_data_db.create_index([("order.price.unit", 1)])
+
+trade_data_db.create_index([("trade_type", 1)])
+trade_data_db.create_index([("unit_price", 1)])
+trade_data_db.create_index([("order.id", 1)])
+trade_data_db.create_index([("user.id", 1)])
 
 token_data_db.create_index([("token", 1)])
 

@@ -2,6 +2,7 @@ from typing import Dict, List, Literal
 
 from bson import ObjectId
 from data.user import get_user_data_from_uid
+from data.trade import create_trade
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
@@ -159,7 +160,7 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
     )
 
 
-def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
+def change_order_traded_amount(order_id: str, new_traded_amount: int) -> None:
     """更改订单已交易数量
 
     该函数会阻止用户将已交易数量更改为比当前值更低的数值
@@ -171,23 +172,26 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     Raises:
         AmountIlliegalError: 已交易量为空或不在正常范围内
     """
-    if traded_amount is None:
+    if new_traded_amount is None:
         raise AmountIlliegalError("已交易量不能为空")
-    if traded_amount < 0:
+    if new_traded_amount < 0:
         raise AmountIlliegalError("已交易量必须大于 0")
 
     # 此处如果 Order ID 不存在，会抛出异常
     # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
     order_data = get_order_data_from_order_id(order_id)
     total_amount: int = order_data["order"]["amount"]["total"]
-    if traded_amount > total_amount:
+    origin_traded_amount = order_data["order"]["amount"]["traded"]
+    trade_amount = new_traded_amount - origin_traded_amount
+    if new_traded_amount > total_amount:
         raise AmountIlliegalError("已交易量不能大于总量")
-    if traded_amount < order_data["order"]["amount"]["traded"]:
+    if trade_amount <= 0:
         raise AmountIlliegalError("不能将已交易量改为低于当前值的数值")
 
-    remaining_amount: int = total_amount - traded_amount
+    remaining_amount: int = total_amount - new_traded_amount
     unit_price: float = order_data["order"]["price"]["unit"]
     total_price: float = round(unit_price * total_amount, 2)
+    uid: str = order_data["user"]["id"]
 
     data_to_update: Dict = {
         "order.price": {
@@ -196,10 +200,19 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
         },
         "order.amount": {
             "total": total_amount,
-            "traded": traded_amount,
+            "traded": new_traded_amount,
             "remaining": remaining_amount,
         },
     }
+    # 创建交易
+    trade_type: Literal["buy", "sell"] = order_data["order"]["type"]
+    create_trade(
+        trade_type=trade_type,
+        unit_price=unit_price,
+        trade_amount=trade_amount,
+        order_id=order_id,
+        uid=uid,
+    )
     # 如果余量为 0，将交易单状态置为已完成
     if remaining_amount == 0:
         data_to_update["status"] = 1  # 已完成
