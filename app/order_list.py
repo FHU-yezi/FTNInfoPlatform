@@ -1,6 +1,6 @@
 from data.order import get_active_orders_list
 from data.token import verify_token
-from pywebio.output import put_markdown, put_tabs
+from pywebio.output import put_markdown, put_tabs, put_warning
 from utils.exceptions import TokenNotExistError
 from utils.page import get_token
 from widgets.order import put_order_item
@@ -18,6 +18,7 @@ def order_list() -> None:
         uid: str = ""
 
     put_markdown("# 意向单列表")
+    put_warning("以下意向单均为用户自主发布，请自行核对其真实性，谨防上当受骗")
 
     buy_view = []
     for buy_order_data in get_active_orders_list("buy", 20):
