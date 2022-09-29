@@ -1,14 +1,12 @@
+from data.order import delete_order, get_my_active_order
+from data.token import create_token, verify_token
 from pywebio.output import (
     close_popup,
     popup,
     put_buttons,
     put_markdown,
-    put_processbar,
-    put_row,
     toast,
 )
-from data.order import delete_order, get_my_active_order
-from data.token import create_token, verify_token
 from utils.exceptions import TokenNotExistError
 from utils.html import link
 from utils.login import require_login
@@ -18,8 +16,8 @@ from utils.page import (
     jump_to,
     reload,
     set_token,
-    set_url_params,
 )
+from widgets.order import put_order_detail
 
 NAME: str = "我的意向单"
 DESC: str = "查看并修改自己的意向单"
@@ -34,19 +32,19 @@ def on_delete_confirmed(order_id: str):
 
 def on_change_unit_price_button_clicked(order_id: str):
     jump_to(
-        set_url_params(
-            get_url_to_module("change_unit_price"),
+        get_url_to_module(
+            "change_unit_price",
             {"order_id": order_id},
-        )
+        ),
     )
 
 
 def on_change_traded_amount_button_clicked(order_id: str):
     jump_to(
-        set_url_params(
-            get_url_to_module("change_traded_amount"),
+        get_url_to_module(
+            "change_traded_amount",
             {"order_id": order_id},
-        )
+        ),
     )
 
 
@@ -80,40 +78,23 @@ def my_orders() -> None:
             f"""
             ## 买单
 
-            您目前没有买单，{link("去发布>>>", set_url_params(
-                get_url_to_module("publish_order"), params={"order_type": "buy"}
+            您目前没有买单，{link("去发布>>>", get_url_to_module(
+                "publish_order", params={"order_type": "buy"}
             ), new_window=True)}
             """,
             sanitize=False,
         )
     else:
         buy_order_id = str(buy_order_data["_id"])
-        put_markdown(
-            f"""
-            ## 买单
-
-            发布时间：{buy_order_data['publish_time']}
-            单价：{buy_order_data['order']['price']['unit']}
-            总量：{buy_order_data['order']['amount']['total']}
-            已交易：{buy_order_data['order']['amount']['traded']}
-            剩余：{buy_order_data['order']['amount']['remaining']}
-            总价：{buy_order_data['order']['price']['total']}
-            """,
-            sanitize=False,
-        )
-        put_row(
-            [
-                put_markdown("交易进度："),
-                put_processbar(
-                    f"trade-process-bar-{buy_order_data['_id']}",
-                    init=round(
-                        buy_order_data["order"]["amount"]["traded"]
-                        / buy_order_data["order"]["amount"]["total"],
-                        3,
-                    ),
-                ),
-            ],
-            size="auto 3fr",
+        put_order_detail(
+            order_id=buy_order_id,
+            order_type=buy_order_data["order"]["type"],
+            publish_time=buy_order_data["publish_time"],
+            unit_price=buy_order_data["order"]["price"]["unit"],
+            total_price=buy_order_data["order"]["price"]["total"],
+            total_amount=buy_order_data["order"]["amount"]["total"],
+            traded_amount=buy_order_data["order"]["amount"]["traded"],
+            remaining_amount=buy_order_data["order"]["amount"]["remaining"],
         )
         put_buttons(
             buttons=[
@@ -146,50 +127,41 @@ def my_orders() -> None:
             f"""
             ## 卖单
 
-            您目前没有卖单，{link("去发布>>>", set_url_params(
-                get_url_to_module("publish_order"), params={"order_type": "sell"}
+            您目前没有卖单，{link("去发布>>>", get_url_to_module(
+                "publish_order", params={"order_type": "sell"}
             ), new_window=True)}
             """,
             sanitize=False,
         )
     else:
         sell_order_id = str(sell_order_data["_id"])
-        put_markdown(
-            f"""
-            ## 卖单
-
-            发布时间：{sell_order_data['publish_time']}
-            单价：{sell_order_data['order']['price']['unit']}
-            总量：{sell_order_data['order']['amount']['total']}
-            已交易：{sell_order_data['order']['amount']['traded']}
-            剩余：{sell_order_data['order']['amount']['remaining']}
-            总价：{sell_order_data['order']['price']['total']}
-            """,
-            sanitize=False,
-        )
-        put_row(
-            [
-                put_markdown("交易进度："),
-                put_processbar(
-                    f"trade-process-bar-{sell_order_data['_id']}",
-                    init=round(
-                        sell_order_data["order"]["amount"]["traded"]
-                        / sell_order_data["order"]["amount"]["total"],
-                        3,
-                    ),
-                ),
-            ],
-            size="auto 3fr",
+        put_order_detail(
+            order_id=sell_order_id,
+            order_type=sell_order_data["order"]["type"],
+            publish_time=sell_order_data["publish_time"],
+            unit_price=sell_order_data["order"]["price"]["unit"],
+            total_price=sell_order_data["order"]["price"]["total"],
+            total_amount=sell_order_data["order"]["amount"]["total"],
+            traded_amount=sell_order_data["order"]["amount"]["traded"],
+            remaining_amount=sell_order_data["order"]["amount"]["remaining"],
         )
         put_buttons(
             buttons=[
-                {"label": "修改价格", "value": "change_unit_price", "color": "success"},
+                {
+                    "label": "修改价格",
+                    "value": "change_unit_price",
+                    "color": "success",
+                },
                 {
                     "label": "修改已交易数量",
                     "value": "change_traded_amount",
                     "color": "success",
                 },
-                {"label": "删除", "value": "delete", "color": "warning"},
+                {
+                    "label": "删除",
+                    "value": "delete",
+                    "color": "warning",
+                },
             ],
             onclick=[
                 lambda: on_change_unit_price_button_clicked(sell_order_id),
