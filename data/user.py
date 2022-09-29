@@ -37,6 +37,10 @@ def get_user_jianshu_name(user_url: str) -> str:
         raise UserURLIlliegalError("获取数据时出现异常")
 
 
+def get_jianshu_bind_url(uid: str) -> bool:
+    return get_user_data_from_uid(uid)["jianshu"]["url"]
+
+
 def is_user_name_exist(user_name: str) -> bool:
     return user_data_db.count_documents({"user_name": user_name}) != 0
 
