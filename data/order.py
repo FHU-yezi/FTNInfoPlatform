@@ -64,62 +64,6 @@ def get_order_data_from_order_id(order_id: str) -> Dict:
     return result
 
 
-def get_in_trading_orders_count(order_type: Literal["buy", "sell"]) -> int:
-    """获取交易中订单总数
-
-    Args:
-        order_type (Literal["buy", "sell"]): 订单类型
-
-    Returns:
-        int: 交易中订单总数
-    """
-    return order_data_db.count_documents(
-        {
-            "status": 0,  # 交易中
-            "order.type": order_type,
-        }
-    )
-
-
-def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
-    """获取简书贝均价
-
-    如果当前处于交易中的订单量少于 5 条，将视为数据不足，返回官方指导价 0.1
-
-    Args:
-        order_type (Literal["buy", "sell"]): 订单类型
-
-    Returns:
-        float: 简书贝均价
-    """
-    if get_in_trading_orders_count(order_type) < 5:
-        return 0.1  # 数据不足，结果不准确，返回官方指导价
-
-    return round(
-        list(
-            order_data_db.aggregate(
-                [
-                    {
-                        "$match": {
-                            "status": 0,  # 交易中
-                            "order.type": order_type,
-                        },
-                    },
-                    {
-                        "$group": {
-                            "_id": None,
-                            "result": {
-                                "$avg": "$order.price.unit",
-                            },
-                        },
-                    },
-                ]
-            )
-        )[0]["result"],
-        3,
-    )
-
-
 def create_order(
     order_type: Literal["buy", "sell"], unit_price: float, total_amount: int, uid: str
 ):
