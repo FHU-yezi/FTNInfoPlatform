@@ -302,13 +302,14 @@ def get_my_active_order(uid: str, order_type: Literal["buy", "sell"]) -> Dict:
 
 
 def get_my_finished_orders_list(
-    uid: str, order_type: Literal["buy", "sell"]
+    uid: str, order_type: Literal["buy", "sell"], limit: int
 ) -> List[Dict]:
     """获取自己的已完成订单
 
     Args:
         uid (str): UID
         order_type (Literal["buy", "sell"]): 订单类型
+        limit (int): 返回数量限制
 
     Returns:
         List[Dict]: 订单信息
@@ -319,4 +320,4 @@ def get_my_finished_orders_list(
             "order.type": order_type,
             "user.id": uid,
         }
-    )
+    ).limit(limit)

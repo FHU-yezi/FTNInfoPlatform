@@ -85,3 +85,24 @@ def put_order_detail(
         ],
         size="auto 2fr 1fr",
     )
+
+
+def put_finished_order_item(
+    publish_time: datetime,
+    finish_time: datetime,
+    unit_price: float,
+    total_price: float,
+    total_amount: int,
+) -> None:
+    return put_collapse(
+        title=f"成交于 {str(finish_time).split(' ')[0]} / 共 {total_price} 元",
+        content=[
+            put_markdown(
+                f"""
+                发布时间：{publish_time}
+                单价：{unit_price}
+                总量：{total_amount}
+                """
+            )
+        ],
+    )
