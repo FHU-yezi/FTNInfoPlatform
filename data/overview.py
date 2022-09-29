@@ -38,43 +38,11 @@ def get_finished_orders_count(order_type: Literal["buy", "sell", "all"]) -> int:
     return order_data_db.count_documents(filter)
 
 
-def get_FTN_avagae_price(order_type: Literal["buy", "sell"]) -> float:
-    """获取简书贝均价
-
-    如果当前处于交易中的订单量少于 5 条，将视为数据不足，返回官方指导价 0.1
-
-    Args:
-        order_type (Literal["buy", "sell"]): 订单类型
-
-    Returns:
-        float: 简书贝均价
-    """
-    if get_in_trading_orders_count(order_type) < 5:
-        return 0.1  # 数据不足，结果不准确，返回官方指导价
-
-    return round(
-        list(
-            order_data_db.aggregate(
-                [
-                    {
-                        "$match": {
-                            "status": 0,  # 交易中
-                            "order.type": order_type,
-                        },
-                    },
-                    {
-                        "$group": {
-                            "_id": None,
-                            "result": {
-                                "$avg": "$order.price.unit",
-                            },
-                        },
-                    },
-                ]
-            )
-        )[0]["result"],
-        3,
-    )
+def get_24h_trade_count(trade_type: Literal["buy", "sell", "all"]) -> int:
+    filter: Dict[str, Any] = {}
+    if trade_type in {"buy", "sell"}:
+        filter["trade_type"] = trade_type
+    return trade_data_db.count_documents(filter)
 
 
 def get_total_traded_amount() -> int:
@@ -159,16 +127,18 @@ def get_24h_traded_FTN_amount(trade_type: Literal["buy", "sell"]) -> int:
 
 
 def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
+    filter: Dict[str, Any] = {
+        "trade_time": {
+            "$gte": datetime.now() - timedelta(days=1),
+        },
+    }
+    if trade_type in {"buy", "sell"}:
+        filter["trade_type"] = trade_type
     return list(
         trade_data_db.aggregate(
             [
                 {
-                    "$match": {
-                        "trade_time": {
-                            "$gte": datetime.now() - timedelta(days=1),
-                        },
-                        "trade_type": trade_type,
-                    }
+                    "$match": filter
                 },
                 {
                     "$group": {
@@ -183,7 +153,10 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_avg_price(trade_type: Literal["buy", "sell"]) -> float:
+def get_24h_traded_FTN_avg_price(trade_type: Literal["buy", "sell", "all"]) -> float:
+    if get_24h_trade_count(trade_type) < 5:
+        return 0.1  # 数据不足，结果不准确，返回官方指导价
+
     return round(
         list(
             trade_data_db.aggregate(

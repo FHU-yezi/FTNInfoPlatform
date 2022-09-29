@@ -3,7 +3,7 @@ from typing import Dict
 
 from bson import ObjectId
 from data.order import change_order_unit_price, get_order_data_from_order_id
-from data.overview import get_FTN_avagae_price
+from data.overview import get_24h_traded_FTN_avg_price
 from data.token import create_token, verify_token
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
@@ -121,7 +121,7 @@ def change_unit_price() -> None:
         "float",
         label="单价",
         value=order_data["order"]["price"]["unit"],
-        help_text=f"市场参考价：{get_FTN_avagae_price(order_type)}",
+        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order_type)}",
     )
     put_input(
         "total_amount",
