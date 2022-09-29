@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Literal
-
+from utils.html import link
 from pywebio.output import (
     put_collapse,
     put_markdown,
@@ -54,6 +54,12 @@ def put_order_item(
                     None,
                 ],
                 size="auto 2fr 1fr",
+            ),
+            put_markdown(
+                "简书个人主页：" + link("点击跳转", jianshu_url, new_window=True)
+                if jianshu_binded
+                else "",
+                sanitize=False,
             ),
         ],
     )
