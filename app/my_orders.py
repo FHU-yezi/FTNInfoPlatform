@@ -16,7 +16,6 @@ from utils.page import (
     jump_to,
     reload,
     set_token,
-    set_url_params,
 )
 from widgets.order import put_order_detail
 
@@ -33,19 +32,19 @@ def on_delete_confirmed(order_id: str):
 
 def on_change_unit_price_button_clicked(order_id: str):
     jump_to(
-        set_url_params(
-            get_url_to_module("change_unit_price"),
+        get_url_to_module(
+            "change_unit_price",
             {"order_id": order_id},
-        )
+        ),
     )
 
 
 def on_change_traded_amount_button_clicked(order_id: str):
     jump_to(
-        set_url_params(
-            get_url_to_module("change_traded_amount"),
+        get_url_to_module(
+            "change_traded_amount",
             {"order_id": order_id},
-        )
+        ),
     )
 
 
@@ -79,8 +78,8 @@ def my_orders() -> None:
             f"""
             ## 买单
 
-            您目前没有买单，{link("去发布>>>", set_url_params(
-                get_url_to_module("publish_order"), params={"order_type": "buy"}
+            您目前没有买单，{link("去发布>>>", get_url_to_module(
+                "publish_order", params={"order_type": "buy"}
             ), new_window=True)}
             """,
             sanitize=False,
@@ -128,8 +127,8 @@ def my_orders() -> None:
             f"""
             ## 卖单
 
-            您目前没有卖单，{link("去发布>>>", set_url_params(
-                get_url_to_module("publish_order"), params={"order_type": "sell"}
+            您目前没有卖单，{link("去发布>>>", get_url_to_module(
+                "publish_order", params={"order_type": "sell"}
             ), new_window=True)}
             """,
             sanitize=False,

@@ -16,8 +16,11 @@ def get_current_page_url() -> str:
     return "http://" + eval_js("window.location.href").split("/")[-2]
 
 
-def get_url_to_module(module_name: str) -> str:
-    return get_base_url() + f"?app={module_name}"
+def get_url_to_module(module_name: str, params: Optional[Dict[str, Any]] = None) -> str:
+    result = get_base_url() + f"?app={module_name}"
+    if params:
+        result = set_url_params(result, params)
+    return result
 
 
 def get_chart_width(in_tab: bool = False) -> int:
