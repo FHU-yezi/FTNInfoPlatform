@@ -147,6 +147,7 @@ def change_traded_amount() -> None:
         "number",
         label="已交易",
         value=order_data["order"]["amount"]["traded"],
+        help_text="不能小于当前值，不能大于总量"
     )
     put_input(
         "remaining_amount",

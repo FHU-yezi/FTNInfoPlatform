@@ -162,7 +162,7 @@ def change_order_unit_price(order_id: str, unit_price: float) -> None:
 def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     """更改订单已交易数量
 
-    该函数不会阻止用户将已交易数量更改为比现有值更低的数值
+    该函数会阻止用户将已交易数量更改为比当前值更低的数值
 
     Args:
         order_id (str): 订单 ID
@@ -182,6 +182,8 @@ def change_order_traded_amount(order_id: str, traded_amount: int) -> None:
     total_amount: int = order_data["order"]["amount"]["total"]
     if traded_amount > total_amount:
         raise AmountIlliegalError("已交易量不能大于总量")
+    if traded_amount < order_data["order"]["amount"]["traded"]:
+        raise AmountIlliegalError("不能将已交易量改为低于当前值的数值")
 
     remaining_amount: int = total_amount - traded_amount
     unit_price: float = order_data["order"]["price"]["unit"]
