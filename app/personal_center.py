@@ -1,3 +1,5 @@
+from data.token import create_token, expire_token, verify_token
+from data.user import change_password, change_user_name, get_user_data_from_uid
 from pywebio.output import (
     close_popup,
     popup,
@@ -9,13 +11,6 @@ from pywebio.output import (
 )
 from pywebio.pin import pin, put_input
 from utils.callback import bind_enter_key_callback
-from utils.config import config
-from data.token import create_token, expire_token, verify_token
-from data.user import (
-    change_password,
-    change_user_name,
-    get_user_data_from_uid,
-)
 from utils.exceptions import (
     DuplicatedUsernameError,
     PasswordIlliegalError,
@@ -197,18 +192,6 @@ def on_change_password_confirmed(uid: str) -> None:
         reload(delay=1)
 
 
-def on_change_token_expire_time_button_clicked(
-    uid: str, now_token_expire_hour: int
-) -> None:
-    # TODO
-    pass
-
-
-def on_change_token_expire_time_confirmed() -> None:
-    # TODO
-    pass
-
-
 def on_logout_button_clicked() -> None:
     expire_token(get_token())
     toast_success("您已安全退出")
@@ -254,41 +237,9 @@ def personal_center() -> None:
         small=True,
     )
 
-    now_token_expire_hour: int = user_data.get(
-        "customize_token_expire_hours", config.token_expire_hours
-    )
-    put_markdown(
-        f"""
-        ## 鉴权有效期
-
-        该设置影响您被要求重新登录的频率。
-
-        将该值调大可以减少被要求登录的次数，但会略微降低账户安全性。
-
-        默认值为 {config.token_expire_hours} 小时。
-        """
-    )
-    put_row(
-        [
-            put_markdown(f"当前值：{now_token_expire_hour} 小时"),
-            put_button(
-                "修改（该功能正在开发中）",
-                onclick=lambda: on_change_token_expire_time_button_clicked(
-                    uid, now_token_expire_hour
-                ),
-                color="success",
-                small=True,
-                outline=True,
-                disabled=True,
-            ),
-            None,
-        ],
-        size="140px auto auto",
-    )
-
     put_markdown(
         """
-        # 退出登录
+        ## 退出登录
 
         安全退出系统。
         """
