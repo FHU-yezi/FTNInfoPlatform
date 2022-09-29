@@ -22,7 +22,7 @@ def data_overview() -> None:
         f"""
         交易中意向单：{get_in_trading_orders_count("all")} 条
         已完成意向单：{get_finished_orders_count("all")} 条
-        总完成意向量：{get_total_traded_amount()} 简书贝 / {get_total_traded_price()} 元
+        总交易量：{get_total_traded_amount()} 简书贝 / {get_total_traded_price()} 元
         24 小时平均买 / 卖价：{get_24h_traded_FTN_avg_price("buy")} / {get_24h_traded_FTN_avg_price("sell")}
         """
     )
@@ -30,6 +30,7 @@ def data_overview() -> None:
     put_markdown("# 24 小时意向价格")
     per_hour_buy_avg_price = get_per_hour_trade_avg_price("buy", 24)
     per_hour_sell_avg_price = get_per_hour_trade_avg_price("sell", 24)
+    print(per_hour_buy_avg_price, per_hour_sell_avg_price)
     buy_x = [str(item["_id"]) for item in per_hour_buy_avg_price]
     buy_y = [item["avg_price"] for item in per_hour_buy_avg_price]
     sell_x = [str(item["_id"]) for item in per_hour_sell_avg_price]

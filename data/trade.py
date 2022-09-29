@@ -1,5 +1,6 @@
 from utils.db import trade_data_db
 from typing import Literal
+from utils.time_helper import get_now_without_mileseconds
 from utils.exceptions import PriceIlliegalError, AmountIlliegalError
 
 
@@ -23,6 +24,7 @@ def create_trade(
     total_price: float = round(unit_price * trade_amount, 2)
     trade_data_db.insert_one(
         {
+            "trade_time": get_now_without_mileseconds(),
             "trade_type": trade_type,
             "unit_price": unit_price,
             "trade_amount": trade_amount,
