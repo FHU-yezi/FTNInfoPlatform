@@ -2,19 +2,16 @@ from time import sleep
 from typing import Dict
 
 from bson import ObjectId
+from data.order import change_order_traded_amount, get_order_data_from_order_id
+from data.token import create_token, verify_token
 from pywebio.output import (
+    clear_scope,
     put_buttons,
     put_markdown,
     put_success,
     use_scope,
-    clear_scope,
 )
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
-from data.order import (
-    change_order_traded_amount,
-    get_order_data_from_order_id,
-)
-from data.token import create_token, verify_token
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,

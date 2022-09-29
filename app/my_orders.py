@@ -4,7 +4,14 @@ from data.order import (
     get_my_finished_orders_list,
 )
 from data.token import create_token, verify_token
-from pywebio.output import close_popup, popup, put_buttons, put_tabs, put_markdown, toast
+from pywebio.output import (
+    close_popup,
+    popup,
+    put_buttons,
+    put_markdown,
+    put_tabs,
+    toast,
+)
 from utils.exceptions import TokenNotExistError
 from utils.html import link
 from utils.login import require_login
@@ -182,9 +189,7 @@ def my_orders() -> None:
             )
         )
     if not finished_buy_view:
-        finished_buy_view.append(
-            put_markdown("您没有已完成的买单")
-        )
+        finished_buy_view.append(put_markdown("您没有已完成的买单"))
 
     finished_sell_view = []
     for finished_sell_order_data in get_my_finished_orders_list(uid, "sell", 20):
@@ -198,9 +203,7 @@ def my_orders() -> None:
             )
         )
     if not finished_sell_view:
-        finished_sell_view.append(
-            put_markdown("您没有已完成的卖单")
-        )
+        finished_sell_view.append(put_markdown("您没有已完成的卖单"))
 
     put_tabs(
         [
