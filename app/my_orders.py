@@ -4,6 +4,7 @@ from data.order import (
     get_my_finished_orders_list,
 )
 from data.token import create_token, verify_token
+from data.user import get_jianshu_bind_url
 from pywebio.output import (
     close_popup,
     popup,
@@ -70,6 +71,13 @@ def my_orders() -> None:
         set_token(create_token(uid))
 
     put_markdown("# 我的意向单")
+
+    if not get_jianshu_bind_url(uid):
+        put_markdown(
+            "绑定简书账号，成交更快，"
+            + link("去绑定>>>", get_url_to_module("personal_center"), new_window=True),
+            sanitize=False,
+        )
 
     buy_order_data = get_my_active_order(uid, "buy")
     if not buy_order_data:
