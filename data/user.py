@@ -1,9 +1,11 @@
 from typing import Dict
 
 from bson import ObjectId
+from httpx import get as httpx_get
 from utils.db import user_data_db
 from utils.exceptions import (
     DuplicatedUsernameError,
+    DuplicatedUserURLError,
     PasswordIlliegalError,
     PasswordNotChangedError,
     PasswordNotEqualError,
@@ -12,6 +14,7 @@ from utils.exceptions import (
     UsernameNotChangedError,
     UsernameNotExistError,
     UsernameOrPasswordWrongError,
+    UserURLIlliegalError,
     WeakPasswordError,
 )
 from utils.hash import get_hash
@@ -23,8 +26,27 @@ from utils.text_filter import (
 from utils.time_helper import get_now_without_mileseconds
 
 
+def get_user_jianshu_name(user_url: str) -> str:
+    if not user_url.startswith("https://www.jianshu.com/u/"):
+        raise UserURLIlliegalError("用户个人主页 URL 格式错误")
+    try:
+        response = httpx_get("https://www.jianshu.com/asimov/users/slug/" + user_url.split("/")[4])
+        data = response.json()
+        return data["nickname"]
+    except Exception:
+        raise UserURLIlliegalError("获取数据时出现异常")
+
+
+def get_jianshu_bind_url(uid: str) -> bool:
+    return get_user_data_from_uid(uid)["jianshu"]["url"]
+
+
 def is_user_name_exist(user_name: str) -> bool:
     return user_data_db.count_documents({"user_name": user_name}) != 0
+
+
+def is_jianshu_url_exist(jianshu_url: str) -> bool:
+    return user_data_db.count_documents({"jianshu.url": jianshu_url}) != 0
 
 
 def get_user_data_from_uid(uid: str) -> Dict:
@@ -81,6 +103,10 @@ def sign_up(
                 "admin": admin_permissions_level,
                 "user": user_permissions_level,
             },
+            "jianshu": {
+                "url": None,
+                "name": None,
+            }
         }
     )
 
@@ -180,3 +206,29 @@ def change_password(
     )
 
     # 将用户当前的 Token 过期，该部分由调用方完成
+
+
+def bind_jianshu_account(uid: str, jianshu_url: str) -> str:
+    if not jianshu_url:
+        raise UserURLIlliegalError("用户个人主页 URL 不能为空")
+    user_data = user_data_db.find_one({"_id": ObjectId(uid)})
+    if not user_data:
+        raise UIDNotExistError("UID 不存在")
+
+    if is_jianshu_url_exist(jianshu_url):
+        raise DuplicatedUserURLError("该个人主页 URL 已被绑定")
+
+    # 此处可能发生错误的向上传递
+    jianshu_name = get_user_jianshu_name(jianshu_url)
+
+    data_to_update: Dict = {
+        "jianshu": {
+            "url": jianshu_url,
+            "name": jianshu_name,
+        }
+    }
+    user_data_db.update_one(
+        {"_id": ObjectId(uid)},
+        {"$set": data_to_update}
+    )
+    return jianshu_name

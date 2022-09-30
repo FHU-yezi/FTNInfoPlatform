@@ -1,5 +1,10 @@
 from data.token import create_token, expire_token, verify_token
-from data.user import change_password, change_user_name, get_user_data_from_uid
+from data.user import (
+    bind_jianshu_account,
+    change_password,
+    change_user_name,
+    get_user_data_from_uid,
+)
 from pywebio.output import (
     close_popup,
     popup,
@@ -13,6 +18,7 @@ from pywebio.pin import pin, put_input
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,
+    DuplicatedUserURLError,
     PasswordIlliegalError,
     PasswordNotChangedError,
     PasswordNotEqualError,
@@ -20,6 +26,7 @@ from utils.exceptions import (
     UsernameIlliegalError,
     UsernameNotChangedError,
     UsernameOrPasswordWrongError,
+    UserURLIlliegalError,
     WeakPasswordError,
 )
 from utils.login import require_login
@@ -198,6 +205,77 @@ def on_logout_button_clicked() -> None:
     reload(delay=1)
 
 
+def on_bind_jianshu_account_button_clicked(uid: str):
+    with popup("绑定简书账号", size="large"):
+        put_markdown(
+            """
+            绑定简书账号后，其它用户可在意向单列表中一键跳转至您的简书主页，交易更加方便。
+            """
+        ),
+        put_input(
+            "jianshu_url",
+            "text",
+            label="简书用户主页 URL",
+            help_text="示例：https://www.jianshu.com/u/ea36c8d8aa30",
+        ),
+        with use_scope("buttons", clear=True):
+            put_buttons(
+                [
+                    {
+                        "label": "确定",
+                        "value": "confirm",
+                        "color": "success",
+                    },
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
+                ],
+                onclick=[
+                    lambda: on_bind_jianshu_account_confirmed(uid),
+                    close_popup,
+                ],
+            )
+    bind_enter_key_callback(
+        "jianshu_url",
+        on_press=lambda _: on_bind_jianshu_account_confirmed(uid),
+    )
+
+
+def on_bind_jianshu_account_confirmed(uid: str):
+    jianshu_url: str = pin.jianshu_url
+    try:
+        jianshu_name: str = bind_jianshu_account(uid, jianshu_url)
+    except UserURLIlliegalError:
+        toast_error_and_return("链接为空或输入错误")
+    except DuplicatedUserURLError:
+        toast_warn_and_return("该简书账号已被他人绑定")
+    else:
+        toast_success(f"您已成功绑定简书账号 {jianshu_name}")
+        # 将按钮设为不可用
+        # TODO
+        with use_scope("buttons", clear=True):
+            put_buttons(
+                [
+                    {
+                        "label": "确定",
+                        "value": "confirm",
+                        "color": "success",
+                        "disabled": True,
+                    },
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
+                ],
+                onclick=[
+                    lambda: None,
+                    lambda: None,
+                ],
+            )
+        reload(delay=1)
+
+
 def personal_center() -> None:
     try:
         uid = verify_token(get_token())
@@ -221,6 +299,28 @@ def personal_center() -> None:
                 color="success",
                 small=True,
             ),
+        ],
+        size="auto 10px 1fr",
+    )
+    put_row(
+        [
+            put_markdown(
+                "简书账号："
+                + (
+                    f"已绑定（{user_data['jianshu']['name']}）"
+                    if user_data["jianshu"]["url"]
+                    else "未绑定"
+                )
+            ),
+            None,
+            put_button(
+                "绑定简书账号",
+                onclick=lambda: on_bind_jianshu_account_button_clicked(uid),
+                color="success",
+                small=True,
+            )
+            if not user_data["jianshu"]["url"]
+            else put_markdown(""),
         ],
         size="auto 10px 1fr",
     )

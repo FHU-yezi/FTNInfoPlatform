@@ -1,23 +1,22 @@
-from data.order import delete_order, get_my_active_order
+from data.order import (
+    delete_order,
+    get_my_active_order,
+    get_my_finished_orders_list,
+)
 from data.token import create_token, verify_token
 from pywebio.output import (
     close_popup,
     popup,
     put_buttons,
     put_markdown,
+    put_tabs,
     toast,
 )
 from utils.exceptions import TokenNotExistError
 from utils.html import link
 from utils.login import require_login
-from utils.page import (
-    get_token,
-    get_url_to_module,
-    jump_to,
-    reload,
-    set_token,
-)
-from widgets.order import put_order_detail
+from utils.page import get_token, get_url_to_module, jump_to, reload, set_token
+from widgets.order import put_finished_order_item, put_order_detail
 
 NAME: str = "我的意向单"
 DESC: str = "查看并修改自己的意向单"
@@ -169,3 +168,46 @@ def my_orders() -> None:
                 lambda: on_order_delete_button_clicked(sell_order_id),
             ],
         )
+
+    put_markdown(
+        """
+        ## 已完成
+
+        仅展示最近 20 条
+        """
+    )
+
+    finished_buy_view = []
+    for finished_buy_order_data in get_my_finished_orders_list(uid, "buy", 20):
+        finished_buy_view.append(
+            put_finished_order_item(
+                publish_time=finished_buy_order_data["publish_time"],
+                finish_time=finished_buy_order_data.get("finish_time", "不可用"),
+                unit_price=finished_buy_order_data["order"]["price"]["unit"],
+                total_price=finished_buy_order_data["order"]["price"]["total"],
+                total_amount=finished_buy_order_data["order"]["amount"]["total"],
+            )
+        )
+    if not finished_buy_view:
+        finished_buy_view.append(put_markdown("您没有已完成的买单"))
+
+    finished_sell_view = []
+    for finished_sell_order_data in get_my_finished_orders_list(uid, "sell", 20):
+        finished_sell_view.append(
+            put_finished_order_item(
+                publish_time=finished_sell_order_data["publish_time"],
+                finish_time=finished_sell_order_data.get("finish_time", "不可用"),
+                unit_price=finished_sell_order_data["order"]["price"]["unit"],
+                total_price=finished_sell_order_data["order"]["price"]["total"],
+                total_amount=finished_sell_order_data["order"]["amount"]["total"],
+            )
+        )
+    if not finished_sell_view:
+        finished_sell_view.append(put_markdown("您没有已完成的卖单"))
+
+    put_tabs(
+        [
+            {"title": "买单", "content": finished_buy_view},
+            {"title": "卖单", "content": finished_sell_view},
+        ]
+    )

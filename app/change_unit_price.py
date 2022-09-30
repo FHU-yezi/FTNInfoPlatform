@@ -40,7 +40,7 @@ def on_unit_price_or_total_amount_input_changed(_) -> None:
     if not unit_price or not total_amount:
         return
 
-    if not 0 < unit_price <= 3 or not 0 < total_amount <= 10**8:
+    if not 0.05 < unit_price <= 0.2 or not 0 < total_amount <= 10**8:
         return
 
     total_price: float = round(unit_price * total_amount, 2)

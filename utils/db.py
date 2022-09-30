@@ -34,6 +34,9 @@ trade_data_db.create_index([("unit_price", 1)])
 trade_data_db.create_index([("order.id", 1)])
 trade_data_db.create_index([("user.id", 1)])
 
+user_data_db.create_index([("user_name", 1)])
+user_data_db.create_index([("jianshu.url", 1)])
+
 token_data_db.create_index([("token", 1)])
 
 # 在 expire_time 时间点过期
