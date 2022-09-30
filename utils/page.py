@@ -49,7 +49,9 @@ def set_token(value: str) -> None:
     run_js(f'document.cookie = "token={value};"')
 
 
-def jump_to(url: str) -> None:
+def jump_to(url: str, delay: int = 0) -> None:
+    if delay:
+        sleep(delay)
     run_js(f"window.location.href = '{url}'")
 
 
@@ -59,7 +61,9 @@ def reload(delay: int = 0) -> None:
     run_js("location.reload()")
 
 
-def close_page() -> None:
+def close_page(delay: int = 0) -> None:
+    if delay:
+        sleep(delay)
     run_js("window.close()")
 
 
@@ -80,3 +84,16 @@ def set_url_params(url: str, params: Dict[str, Any]) -> str:
             return url + "?" + params_str
     else:
         return url + "&" + params_str
+
+
+def copy_to_clipboard(text: str) -> None:
+    run_js(
+        f"""
+        const el = document.createElement('input')
+        el.setAttribute('value', '{text}')
+        document.body.appendChild(el)
+        el.select()
+        document.execCommand('copy')
+        document.body.removeChild(el)
+        """
+    )

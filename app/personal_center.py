@@ -30,7 +30,7 @@ from utils.exceptions import (
     WeakPasswordError,
 )
 from utils.login import require_login
-from utils.page import get_token, reload, set_token
+from utils.page import copy_to_clipboard, get_token, reload, set_token
 from widgets.toast import (
     toast_error_and_return,
     toast_success,
@@ -205,7 +205,7 @@ def on_logout_button_clicked() -> None:
     reload(delay=1)
 
 
-def on_bind_jianshu_account_button_clicked(uid: str):
+def on_bind_jianshu_account_button_clicked(uid: str) -> None:
     with popup("绑定简书账号", size="large"):
         put_markdown(
             """
@@ -242,7 +242,7 @@ def on_bind_jianshu_account_button_clicked(uid: str):
     )
 
 
-def on_bind_jianshu_account_confirmed(uid: str):
+def on_bind_jianshu_account_confirmed(uid: str) -> None:
     jianshu_url: str = pin.jianshu_url
     try:
         jianshu_name: str = bind_jianshu_account(uid, jianshu_url)
@@ -274,6 +274,11 @@ def on_bind_jianshu_account_confirmed(uid: str):
                 ],
             )
         reload(delay=1)
+
+
+def on_copy_uid_button_clicked(uid: str) -> None:
+    copy_to_clipboard(uid)
+    toast_success("复制成功")
 
 
 def personal_center() -> None:
@@ -324,12 +329,20 @@ def personal_center() -> None:
         ],
         size="auto 10px 1fr",
     )
-    put_markdown(
-        f"""
-        UID：{uid}
-        注册时间：{user_data['signup_time']}
-        """
+    put_row(
+        [
+            put_markdown(f"UID：{uid}"),
+            None,
+            put_button(
+                "复制",
+                onclick=lambda: on_copy_uid_button_clicked(uid),
+                color="success",
+                small=True,
+            ),
+        ],
+        size="auto 10px 1fr",
     )
+    put_markdown(f"注册时间：{user_data['signup_time']}")
     put_button(
         "修改密码",
         onclick=lambda: on_change_password_button_clicked(uid),

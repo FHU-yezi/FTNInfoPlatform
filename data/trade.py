@@ -1,7 +1,8 @@
-from utils.db import trade_data_db
 from typing import Literal
+
+from utils.db import trade_data_db
+from utils.exceptions import AmountIlliegalError, PriceIlliegalError
 from utils.time_helper import get_now_without_mileseconds
-from utils.exceptions import PriceIlliegalError, AmountIlliegalError
 
 
 def create_trade(

@@ -1,4 +1,3 @@
-from time import sleep
 from typing import Dict
 
 from bson import ObjectId
@@ -12,6 +11,7 @@ from pywebio.output import (
     use_scope,
 )
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
+from utils.callback import bind_enter_key_callback
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
@@ -87,7 +87,6 @@ def on_change_button_clicked(order_id: str) -> None:
                     lambda: None,
                 ],
             )
-        sleep(1)
         jump_to(get_url_to_module("my_orders"))
 
 
@@ -111,19 +110,11 @@ def change_traded_amount() -> None:
         toast_error_and_return("您无权修改该意向单")
 
     put_markdown("# 修改已交易数量")
-    put_input(
-        "publish_time",
-        "text",
-        label="发布时间",
-        value=str(order_data["publish_time"]),
-        readonly=True,
-    )
-    put_input(
-        "order_type",
-        "text",
-        label="意向单类型",
-        value=("买单" if order_data["order"]["type"] == "buy" else "卖单"),
-        readonly=True,
+    put_markdown(
+        f"""
+        发布时间：{order_data['publish_time']}
+        意向单类型：{"买单" if order_data["order"]["type"] == "buy" else "卖单"}
+        """
     )
     put_input(
         "unit_price",
@@ -144,7 +135,7 @@ def change_traded_amount() -> None:
         "number",
         label="已交易",
         value=order_data["order"]["amount"]["traded"],
-        help_text="不能小于当前值，不能大于总量"
+        help_text="不能小于当前值，不能大于总量",
     )
     put_input(
         "remaining_amount",
@@ -163,8 +154,15 @@ def change_traded_amount() -> None:
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
-                {"label": "更新", "value": "publish", "color": "success"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "更新",
+                    "value": "publish",
+                    "color": "success",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
@@ -177,4 +175,8 @@ def change_traded_amount() -> None:
     pin_on_change(
         "traded_amount",
         onchange=lambda _: on_traded_amount_input_changed(),
+    )
+    bind_enter_key_callback(
+        "traded_amount",
+        on_press=lambda _: on_change_button_clicked(order_id),
     )

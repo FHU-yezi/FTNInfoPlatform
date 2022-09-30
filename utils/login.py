@@ -22,25 +22,34 @@ from utils.page import get_url_to_module, jump_to
 def require_login() -> str:
     uid_container: List[str] = []
 
-    popup(
-        title="登录",
-        content=[
-            put_input("user_name", "text", label="用户名"),
-            put_input("password", "password", label="密码"),
-            put_buttons(
-                buttons=[
-                    {"label": "登录", "value": "login", "color": "success"},
-                    {"label": "注册", "value": "signup"},
-                ],
-                onclick=[
-                    lambda: on_login_button_clicked(uid_container),
-                    on_signup_button_clicked,
-                ],
-            ),
-        ],
-        size="large",
-        closable=False,
-    )
+    with popup("登录", size="large", closable=False):
+        put_input(
+            "user_name",
+            "text",
+            label="用户名",
+        ),
+        put_input(
+            "password",
+            "password",
+            label="密码",
+        ),
+        put_buttons(
+            buttons=[
+                {
+                    "label": "登录",
+                    "value": "login",
+                    "color": "success",
+                },
+                {
+                    "label": "注册",
+                    "value": "signup",
+                },
+            ],
+            onclick=[
+                lambda: on_login_button_clicked(uid_container),
+                on_signup_button_clicked,
+            ],
+        ),
     bind_enter_key_callback(
         "password",
         lambda _: on_login_button_clicked(uid_container),

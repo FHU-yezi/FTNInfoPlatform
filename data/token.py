@@ -1,9 +1,9 @@
 from datetime import datetime
 from time import time
 from typing import Dict
+
 from bson import ObjectId
 from utils.config import config
-from data.user import update_user_last_active_time
 from utils.db import token_data_db, user_data_db
 from utils.exceptions import TokenNotExistError, UIDNotExistError
 from utils.hash import get_hash
@@ -11,6 +11,8 @@ from utils.time_helper import (
     get_datetime_after_hours,
     get_now_without_mileseconds,
 )
+
+from data.user import update_user_last_active_time
 
 
 def generate_token(uid: str) -> str:

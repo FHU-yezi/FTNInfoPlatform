@@ -4,6 +4,7 @@ from data.order import (
     get_my_finished_orders_list,
 )
 from data.token import create_token, verify_token
+from data.user import get_jianshu_bind_url
 from pywebio.output import (
     close_popup,
     popup,
@@ -23,13 +24,13 @@ DESC: str = "查看并修改自己的意向单"
 VISIBILITY: bool = True
 
 
-def on_delete_confirmed(order_id: str):
+def on_delete_confirmed(order_id: str) -> None:
     delete_order(order_id)
     toast("删除成功", color="success")
     reload(delay=1)
 
 
-def on_change_unit_price_button_clicked(order_id: str):
+def on_change_unit_price_button_clicked(order_id: str) -> None:
     jump_to(
         get_url_to_module(
             "change_unit_price",
@@ -38,7 +39,7 @@ def on_change_unit_price_button_clicked(order_id: str):
     )
 
 
-def on_change_traded_amount_button_clicked(order_id: str):
+def on_change_traded_amount_button_clicked(order_id: str) -> None:
     jump_to(
         get_url_to_module(
             "change_traded_amount",
@@ -47,13 +48,28 @@ def on_change_traded_amount_button_clicked(order_id: str):
     )
 
 
-def on_order_delete_button_clicked(order_id: str):
-    with popup("确认删除"):
-        put_markdown("确认要删除这条意向单吗？")
+def on_order_delete_button_clicked(order_id: str) -> None:
+    with popup("确认删除", size="large"):
+        put_markdown(
+            """
+            确认要删除这条意向单吗？
+
+            删除后，该意向单将从列表中消失，并且**不会**显示在下方的“已完成”列表中。
+
+            如果您已经完成了该意向单的交易，请点击“修改已交易数量”按钮，并将“已交易”输入框的数值改为与总量相同的值。
+            """
+        )
         put_buttons(
             buttons=[
-                {"label": "确认", "value": "confirm", "color": "warning"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "确认",
+                    "value": "confirm",
+                    "color": "warning",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 lambda: on_delete_confirmed(order_id),
@@ -71,6 +87,13 @@ def my_orders() -> None:
 
     put_markdown("# 我的意向单")
 
+    if not get_jianshu_bind_url(uid):
+        put_markdown(
+            "绑定简书账号，成交更快，"
+            + link("去绑定>>>", get_url_to_module("personal_center"), new_window=True),
+            sanitize=False,
+        )
+
     buy_order_data = get_my_active_order(uid, "buy")
     if not buy_order_data:
         put_markdown(
@@ -86,7 +109,6 @@ def my_orders() -> None:
     else:
         buy_order_id = str(buy_order_data["_id"])
         put_order_detail(
-            order_id=buy_order_id,
             order_type=buy_order_data["order"]["type"],
             publish_time=buy_order_data["publish_time"],
             unit_price=buy_order_data["order"]["price"]["unit"],
@@ -135,7 +157,6 @@ def my_orders() -> None:
     else:
         sell_order_id = str(sell_order_data["_id"])
         put_order_detail(
-            order_id=sell_order_id,
             order_type=sell_order_data["order"]["type"],
             publish_time=sell_order_data["publish_time"],
             unit_price=sell_order_data["order"]["price"]["unit"],

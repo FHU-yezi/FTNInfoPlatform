@@ -4,7 +4,7 @@ from os import listdir
 from typing import Callable, List
 
 
-@dataclass()
+@dataclass
 class Module:
     page_func_name: str
     page_func: Callable[[], None]

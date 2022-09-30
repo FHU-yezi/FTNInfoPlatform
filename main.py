@@ -2,7 +2,7 @@ from signal import SIGTERM, signal
 from typing import Callable, List
 
 from pywebio import start_server
-from pywebio.output import put_markdown, put_warning
+from pywebio.output import put_markdown
 
 from utils.config import config
 from utils.html import link
@@ -30,8 +30,6 @@ def index() -> None:
         版本：{config.version}
         """
     )
-    put_warning("系统正在测试期间，设计与功能尚未定型，欢迎大家积极反馈。")
-
     config.refresh()  # 刷新配置文件
 
     content: List[str] = []
@@ -58,7 +56,10 @@ def index() -> None:
 
     # 必须传入 sanitize=False 禁用 XSS 攻击防护
     # 否则 target="_blank" 属性会消失，无法实现新标签页打开
-    put_markdown("".join(content), sanitize=False)
+    put_markdown(
+        "".join(content),
+        sanitize=False,
+    )
 
 
 # 将主页函数加入列表

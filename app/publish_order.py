@@ -1,4 +1,3 @@
-from time import sleep
 from typing import Literal
 
 from data.order import create_order
@@ -49,7 +48,9 @@ def on_unit_price_or_total_amount_input_changed(_) -> None:
 def on_order_type_changed(_) -> None:
     order_type: Literal["buy", "sell"] = "buy" if pin.order_type == "买单" else "sell"
 
-    help_text: str = f"市场参考价：{get_24h_traded_FTN_avg_price(order_type)}"
+    help_text: str = (
+        f"市场参考价：{get_24h_traded_FTN_avg_price(order_type, missing='default')}"
+    )
     pin_update("unit_price", help_text=help_text)
 
 
@@ -91,8 +92,7 @@ def on_publish_button_clicked(uid: str) -> None:
                 ],
             )
 
-        sleep(1)
-        jump_to(get_url_to_module("my_orders"))
+        jump_to(get_url_to_module("my_orders"), delay=1)
 
 
 def publish_order() -> None:
@@ -116,15 +116,31 @@ def publish_order() -> None:
         "unit_price",
         "float",
         label="单价",
-        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price('buy')}",
+        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price('buy', missing='default')}",
     )  # 默认 order_type 为 buy
-    put_input("total_amount", "number", label="总量")
-    put_input("total_price", "float", label="总价", readonly=True)
+    put_input(
+        "total_amount",
+        "number",
+        label="总量",
+    )
+    put_input(
+        "total_price",
+        "float",
+        label="总价",
+        readonly=True,
+    )
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
-                {"label": "发布", "value": "publish", "color": "success"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "发布",
+                    "value": "publish",
+                    "color": "success",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 lambda: on_publish_button_clicked(uid),

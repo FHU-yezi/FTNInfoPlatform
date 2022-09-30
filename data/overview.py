@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Union
 
 from utils.db import order_data_db, trade_data_db
 
@@ -46,7 +46,7 @@ def get_24h_trade_count(trade_type: Literal["buy", "sell", "all"]) -> int:
 
 
 def get_total_traded_amount() -> int:
-    return list(
+    result = list(
         trade_data_db.aggregate(
             [
                 {
@@ -59,11 +59,14 @@ def get_total_traded_amount() -> int:
                 },
             ]
         )
-    )[0]["result"]
+    )
+    if not result:
+        return 0
+    return result[0]["result"]
 
 
 def get_total_traded_price() -> float:
-    return list(
+    result = list(
         trade_data_db.aggregate(
             [
                 {
@@ -76,7 +79,10 @@ def get_total_traded_price() -> float:
                 },
             ]
         )
-    )[0]["result"]
+    )
+    if not result:
+        return 0.0
+    return result[0]["result"]
 
 
 def get_24h_finish_orders_count(order_type: Literal["buy", "sell", "all"]) -> int:
@@ -137,9 +143,7 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
     return list(
         trade_data_db.aggregate(
             [
-                {
-                    "$match": filter
-                },
+                {"$match": filter},
                 {
                     "$group": {
                         "_id": None,
@@ -153,9 +157,14 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_avg_price(trade_type: Literal["buy", "sell", "all"]) -> float:
+def get_24h_traded_FTN_avg_price(
+    trade_type: Literal["buy", "sell", "all"], missing: Literal["default", "ignore"]
+) -> Union[float, str]:
     if get_24h_trade_count(trade_type) < 5:
-        return 0.1  # 数据不足，结果不准确，返回官方指导价
+        if missing == "default":
+            return 0.1  # 返回官方指导价
+        else:
+            return "-"
 
     return round(
         list(

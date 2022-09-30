@@ -1,8 +1,8 @@
-from time import sleep
-
+from data.token import create_token
+from data.user import sign_up
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, put_input
-from data.user import sign_up
+from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,
     PasswordIlliegalError,
@@ -10,9 +10,7 @@ from utils.exceptions import (
     UsernameIlliegalError,
     WeakPasswordError,
 )
-from utils.page import get_base_url, jump_to
-from utils.page import set_token
-from data.token import create_token
+from utils.page import get_base_url, jump_to, set_token
 from widgets.toast import (
     toast_error_and_return,
     toast_success,
@@ -60,7 +58,10 @@ def on_signup_button_clicked() -> None:
                         "color": "success",
                         "disabled": True,
                     },
-                    {"label": "取消", "value": "cancel"},
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
                 ],
                 onclick=[
                     lambda: None,
@@ -70,27 +71,50 @@ def on_signup_button_clicked() -> None:
         # 为新注册的用户生成 Token
         # 免去用户登录流程
         set_token(create_token(uid))
-        sleep(1)
-        jump_to(get_base_url())
+        jump_to(get_base_url(), delay=1)
 
 
 def signup() -> None:
     put_markdown("# 注册")
 
-    put_input("user_name", "text", label="用户名", help_text="建议与您的简书昵称相同")
     put_input(
-        "password", "password", label="密码", help_text="长度至少为 8 位，至少包含 1 个字母和 1 个数字"
+        "user_name",
+        "text",
+        label="用户名",
+        help_text="建议与您的简书昵称相同",
     )
-    put_input("password_again", "password", label="确认密码")
+    put_input(
+        "password",
+        "password",
+        label="密码",
+        help_text="长度至少为 8 位，至少包含 1 个字母和 1 个数字",
+    )
+    put_input(
+        "password_again",
+        "password",
+        label="确认密码",
+    )
 
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
-                {"label": "注册", "value": "signup", "color": "success"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "注册",
+                    "value": "signup",
+                    "color": "success",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 on_signup_button_clicked,
                 lambda: jump_to(get_base_url()),
             ],
         )
+
+    bind_enter_key_callback(
+        "password_again",
+        on_press=lambda _: on_signup_button_clicked(),
+    )
