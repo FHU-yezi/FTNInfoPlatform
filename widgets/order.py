@@ -1,18 +1,14 @@
 from datetime import datetime
 from typing import Literal
+
+from pywebio.output import put_collapse, put_markdown, put_row
 from utils.html import link
-from pywebio.output import (
-    put_collapse,
-    put_markdown,
-    put_processbar,
-    put_row,
-)
 
 from widgets.badge import put_badge
+from widgets.progress_bar import put_progress_bar
 
 
 def put_order_item(
-    order_id: str,
     publish_time: datetime,
     publisher_name: str,
     unit_price: float,
@@ -47,13 +43,12 @@ def put_order_item(
             put_row(
                 [
                     put_markdown("交易进度："),
-                    put_processbar(
-                        f"trade-process-{order_id}",
-                        init=round(traded_amount / total_amount, 3),
-                    ),
+                    put_progress_bar(traded_amount, total_amount),
+                    None,
+                    put_markdown(f"{round(traded_amount / total_amount * 100)}%"),
                     None,
                 ],
-                size="auto 2fr 1fr",
+                size="auto auto 10px auto 1fr",
             ),
             put_markdown(
                 "简书个人主页：" + link("点击跳转", jianshu_url, new_window=True)
@@ -89,14 +84,13 @@ def put_order_detail(
     put_row(
         [
             put_markdown("交易进度："),
-            put_processbar(
-                f"trade-process-{order_id}",
-                init=round(traded_amount / total_amount, 3),
-            ),
+            put_progress_bar(traded_amount, total_amount),
+            None,
+            put_markdown(f"{round(traded_amount / total_amount * 100)}%"),
             None,
         ],
-        size="auto 2fr 1fr",
-    )
+        size="auto auto 10px auto 1fr",
+    ),
 
 
 def put_finished_order_item(

@@ -25,7 +25,6 @@ def order_list() -> None:
     for buy_order_data in get_active_orders_list("buy", 20):
         buy_view.append(
             put_order_item(
-                order_id=str(buy_order_data["_id"]),
                 publish_time=buy_order_data["publish_time"],
                 publisher_name=buy_order_data["user"]["name"],
                 unit_price=buy_order_data["order"]["price"]["unit"],
@@ -43,7 +42,6 @@ def order_list() -> None:
     for sell_order_data in get_active_orders_list("sell", 20):
         sell_view.append(
             put_order_item(
-                order_id=str(sell_order_data["_id"]),
                 publish_time=sell_order_data["publish_time"],
                 publisher_name=sell_order_data["user"]["name"],
                 unit_price=sell_order_data["order"]["price"]["unit"],
