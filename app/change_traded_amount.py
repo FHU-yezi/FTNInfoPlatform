@@ -12,6 +12,7 @@ from pywebio.output import (
     use_scope,
 )
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
+from utils.callback import bind_enter_key_callback
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
@@ -169,4 +170,8 @@ def change_traded_amount() -> None:
     pin_on_change(
         "traded_amount",
         onchange=lambda _: on_traded_amount_input_changed(),
+    )
+    bind_enter_key_callback(
+        "traded_amount",
+        lambda _: on_change_button_clicked(order_id)
     )

@@ -7,6 +7,7 @@ from data.overview import get_24h_traded_FTN_avg_price
 from data.token import create_token, verify_token
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
+from utils.callback import bind_enter_key_callback
 from utils.db import order_data_db
 from utils.exceptions import (
     OrderIDNotExistError,
@@ -33,14 +34,14 @@ def get_order_data(order_id: str) -> Dict:
     return order_data_db.find_one({"_id": ObjectId(order_id)})
 
 
-def on_unit_price_or_total_amount_input_changed(_) -> None:
+def on_unit_price_input_changed(_) -> None:
     unit_price: float = pin.unit_price
     total_amount: float = pin.total_amount
 
-    if not unit_price or not total_amount:
+    if not unit_price:
         return
 
-    if not 0.05 < unit_price <= 0.2 or not 0 < total_amount <= 10**8:
+    if not 0.05 < unit_price <= 0.2:
         return
 
     total_price: float = round(unit_price * total_amount, 2)
@@ -157,9 +158,9 @@ def change_unit_price() -> None:
 
     pin_on_change(
         "unit_price",
-        onchange=on_unit_price_or_total_amount_input_changed,
+        onchange=on_unit_price_input_changed,
     )
-    pin_on_change(
-        "total_amount",
-        onchange=on_unit_price_or_total_amount_input_changed,
+    bind_enter_key_callback(
+        "unit_price",
+        on_press=lambda _: on_change_button_clicked(order_id)
     )
