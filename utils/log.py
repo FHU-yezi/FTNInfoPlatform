@@ -52,6 +52,8 @@ class AccessLogger:
             sleep(self._save_interval)
 
     def force_refresh(self):
+        if self._data_queue.empty():  # 没有要保存的数据
+            return
         data_to_save: List[Dict] = []
         while not self._data_queue.empty():
             data_to_save.append(self._data_queue.get())
