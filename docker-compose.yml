@@ -6,7 +6,7 @@ networks:
 
 services:
   main:
-    image: ftninfoplatform:0.7.1
+    image: ftninfoplatform:1.0.0
     build: .
     ports:
       - "8605:8605"

@@ -30,8 +30,6 @@ def index() -> None:
         版本：{config.version}
         """
     )
-    put_warning("系统正在测试期间，设计与功能尚未定型，欢迎大家积极反馈。")
-
     config.refresh()  # 刷新配置文件
 
     content: List[str] = []
