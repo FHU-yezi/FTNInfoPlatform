@@ -30,8 +30,9 @@ def put_order_item(
                     put_badge("未绑定简书", color="warning")
                     if not jianshu_binded
                     else put_markdown(""),
+                    None,
                 ],
-                size="50px 10px 120px",
+                size="auto 10px auto 1fr",
             ),
             put_markdown(
                 f"""
