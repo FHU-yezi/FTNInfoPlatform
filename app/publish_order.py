@@ -1,4 +1,3 @@
-from time import sleep
 from typing import Literal
 
 from data.order import create_order
@@ -91,8 +90,7 @@ def on_publish_button_clicked(uid: str) -> None:
                 ],
             )
 
-        sleep(1)
-        jump_to(get_url_to_module("my_orders"))
+        jump_to(get_url_to_module("my_orders"), delay=1)
 
 
 def publish_order() -> None:

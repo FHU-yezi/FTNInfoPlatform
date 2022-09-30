@@ -1,4 +1,3 @@
-from time import sleep
 
 from data.token import create_token
 from data.user import sign_up
@@ -73,8 +72,7 @@ def on_signup_button_clicked() -> None:
         # 为新注册的用户生成 Token
         # 免去用户登录流程
         set_token(create_token(uid))
-        sleep(1)
-        jump_to(get_base_url())
+        jump_to(get_base_url(), delay=1)
 
 
 def signup() -> None:

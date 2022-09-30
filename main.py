@@ -2,7 +2,7 @@ from signal import SIGTERM, signal
 from typing import Callable, List
 
 from pywebio import start_server
-from pywebio.output import put_markdown, put_warning
+from pywebio.output import put_markdown
 
 from utils.config import config
 from utils.html import link

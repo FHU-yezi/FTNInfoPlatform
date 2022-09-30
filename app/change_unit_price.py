@@ -1,4 +1,3 @@
-from time import sleep
 from typing import Dict
 
 from bson import ObjectId
@@ -78,8 +77,7 @@ def on_change_button_clicked(order_id: str) -> None:
                     lambda: None,
                 ],
             )
-        sleep(1)
-        jump_to(get_url_to_module("my_orders"))
+        jump_to(get_url_to_module("my_orders"), delay=1)
 
 
 def change_unit_price() -> None:
