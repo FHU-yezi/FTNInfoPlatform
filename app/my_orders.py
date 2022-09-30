@@ -49,7 +49,7 @@ def on_change_traded_amount_button_clicked(order_id: str):
 
 
 def on_order_delete_button_clicked(order_id: str):
-    with popup("确认删除"):
+    with popup("确认删除", size="large"):
         put_markdown("确认要删除这条意向单吗？")
         put_buttons(
             buttons=[
