@@ -111,19 +111,11 @@ def change_traded_amount() -> None:
         toast_error_and_return("您无权修改该意向单")
 
     put_markdown("# 修改已交易数量")
-    put_input(
-        "publish_time",
-        "text",
-        label="发布时间",
-        value=str(order_data["publish_time"]),
-        readonly=True,
-    )
-    put_input(
-        "order_type",
-        "text",
-        label="意向单类型",
-        value=("买单" if order_data["order"]["type"] == "buy" else "卖单"),
-        readonly=True,
+    put_markdown(
+        f"""
+        发布时间：{order_data['publish_time']}
+        意向单类型：{"买单" if order_data["order"]["type"] == "buy" else "卖单"}
+        """
     )
     put_input(
         "unit_price",

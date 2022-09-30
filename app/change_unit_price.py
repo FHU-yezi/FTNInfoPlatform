@@ -102,19 +102,11 @@ def change_unit_price() -> None:
 
     put_markdown("# 修改意向单价格")
     order_type = order_data["order"]["type"]
-    put_input(
-        "publish_time",
-        "text",
-        label="发布时间",
-        value=str(order_data["publish_time"]),
-        readonly=True,
-    )
-    put_input(
-        "order_type",
-        "text",
-        label="意向类型",
-        value=("买单" if order_type == "buy" else "卖单"),
-        readonly=True,
+    put_markdown(
+        f"""
+        发布时间：{order_data['publish_time']}
+        意向单类型：{"买单" if order_data["order"]["type"] == "buy" else "卖单"}
+        """
     )
     put_input(
         "unit_price",
