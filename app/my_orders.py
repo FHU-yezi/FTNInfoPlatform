@@ -50,11 +50,26 @@ def on_change_traded_amount_button_clicked(order_id: str) -> None:
 
 def on_order_delete_button_clicked(order_id: str) -> None:
     with popup("确认删除", size="large"):
-        put_markdown("确认要删除这条意向单吗？")
+        put_markdown(
+            """
+            确认要删除这条意向单吗？
+
+            删除后，该意向单将从列表中消失，并且**不会**显示在下方的“已完成”列表中。
+
+            如果您已经完成了该意向单的交易，请点击“修改已交易数量”按钮，并将“已交易”输入框的数值改为与总量相同的值。
+            """
+        )
         put_buttons(
             buttons=[
-                {"label": "确认", "value": "confirm", "color": "warning"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "确认",
+                    "value": "confirm",
+                    "color": "warning",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 lambda: on_delete_confirmed(order_id),
