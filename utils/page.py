@@ -80,3 +80,16 @@ def set_url_params(url: str, params: Dict[str, Any]) -> str:
             return url + "?" + params_str
     else:
         return url + "&" + params_str
+
+
+def copy_to_clipboard(text: str) -> None:
+    run_js(
+        f"""
+        const el = document.createElement('input')
+        el.setAttribute('value', '{text}')
+        document.body.appendChild(el)
+        el.select()
+        document.execCommand('copy')
+        document.body.removeChild(el)
+        """
+    )
