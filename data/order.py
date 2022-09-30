@@ -67,7 +67,7 @@ def get_order_data_from_order_id(order_id: str) -> Dict:
 
 def create_order(
     order_type: Literal["buy", "sell"], unit_price: float, total_amount: int, uid: str
-):
+) -> None:
     """创建订单
 
     Args:

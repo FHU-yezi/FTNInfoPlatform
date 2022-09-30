@@ -205,7 +205,7 @@ def on_logout_button_clicked() -> None:
     reload(delay=1)
 
 
-def on_bind_jianshu_account_button_clicked(uid: str):
+def on_bind_jianshu_account_button_clicked(uid: str) -> None:
     with popup("绑定简书账号", size="large"):
         put_markdown(
             """
@@ -242,7 +242,7 @@ def on_bind_jianshu_account_button_clicked(uid: str):
     )
 
 
-def on_bind_jianshu_account_confirmed(uid: str):
+def on_bind_jianshu_account_confirmed(uid: str) -> None:
     jianshu_url: str = pin.jianshu_url
     try:
         jianshu_name: str = bind_jianshu_account(uid, jianshu_url)

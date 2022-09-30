@@ -62,7 +62,6 @@ def put_order_item(
 
 
 def put_order_detail(
-    order_id: str,
     order_type: Literal["buy", "sell"],
     publish_time: datetime,
     unit_price: float,

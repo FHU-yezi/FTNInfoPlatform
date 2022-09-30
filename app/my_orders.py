@@ -24,13 +24,13 @@ DESC: str = "查看并修改自己的意向单"
 VISIBILITY: bool = True
 
 
-def on_delete_confirmed(order_id: str):
+def on_delete_confirmed(order_id: str) -> None:
     delete_order(order_id)
     toast("删除成功", color="success")
     reload(delay=1)
 
 
-def on_change_unit_price_button_clicked(order_id: str):
+def on_change_unit_price_button_clicked(order_id: str) -> None:
     jump_to(
         get_url_to_module(
             "change_unit_price",
@@ -39,7 +39,7 @@ def on_change_unit_price_button_clicked(order_id: str):
     )
 
 
-def on_change_traded_amount_button_clicked(order_id: str):
+def on_change_traded_amount_button_clicked(order_id: str) -> None:
     jump_to(
         get_url_to_module(
             "change_traded_amount",
@@ -48,7 +48,7 @@ def on_change_traded_amount_button_clicked(order_id: str):
     )
 
 
-def on_order_delete_button_clicked(order_id: str):
+def on_order_delete_button_clicked(order_id: str) -> None:
     with popup("确认删除", size="large"):
         put_markdown("确认要删除这条意向单吗？")
         put_buttons(
@@ -94,7 +94,6 @@ def my_orders() -> None:
     else:
         buy_order_id = str(buy_order_data["_id"])
         put_order_detail(
-            order_id=buy_order_id,
             order_type=buy_order_data["order"]["type"],
             publish_time=buy_order_data["publish_time"],
             unit_price=buy_order_data["order"]["price"]["unit"],
@@ -143,7 +142,6 @@ def my_orders() -> None:
     else:
         sell_order_id = str(sell_order_data["_id"])
         put_order_detail(
-            order_id=sell_order_id,
             order_type=sell_order_data["order"]["type"],
             publish_time=sell_order_data["publish_time"],
             unit_price=sell_order_data["order"]["price"]["unit"],
