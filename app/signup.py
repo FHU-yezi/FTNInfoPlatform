@@ -1,8 +1,10 @@
 from time import sleep
 
+from data.token import create_token
+from data.user import sign_up
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, put_input
-from data.user import sign_up
+from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,
     PasswordIlliegalError,
@@ -10,9 +12,7 @@ from utils.exceptions import (
     UsernameIlliegalError,
     WeakPasswordError,
 )
-from utils.page import get_base_url, jump_to
-from utils.page import set_token
-from data.token import create_token
+from utils.page import get_base_url, jump_to, set_token
 from widgets.toast import (
     toast_error_and_return,
     toast_success,
@@ -60,7 +60,10 @@ def on_signup_button_clicked() -> None:
                         "color": "success",
                         "disabled": True,
                     },
-                    {"label": "取消", "value": "cancel"},
+                    {
+                        "label": "取消",
+                        "value": "cancel",
+                    },
                 ],
                 onclick=[
                     lambda: None,
@@ -94,3 +97,8 @@ def signup() -> None:
                 lambda: jump_to(get_base_url()),
             ],
         )
+
+    bind_enter_key_callback(
+        "password_again",
+        on_press=lambda _: on_signup_button_clicked(),
+    )
