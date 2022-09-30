@@ -6,7 +6,7 @@ def get_now_without_mileseconds() -> datetime:
 
 
 def get_today_in_datetime_obj() -> datetime:
-    return datetime.fromisoformat(date.today().strftime(r"%Y-%m-%d"))
+    return datetime.fromisoformat(date.today().strftime(R"%Y-%m-%d"))
 
 
 def get_datetime_after_hours(datetime_obj: datetime, offset: int) -> datetime:

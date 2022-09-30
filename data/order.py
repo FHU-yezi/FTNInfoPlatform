@@ -1,8 +1,6 @@
 from typing import Dict, List, Literal
 
 from bson import ObjectId
-from data.user import get_user_data_from_uid
-from data.trade import create_trade
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
@@ -12,6 +10,9 @@ from utils.exceptions import (
     PriceIlliegalError,
 )
 from utils.time_helper import get_now_without_mileseconds
+
+from data.trade import create_trade
+from data.user import get_user_data_from_uid
 
 
 def is_order_id_exist(order_id: str) -> bool:

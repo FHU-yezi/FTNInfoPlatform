@@ -143,9 +143,7 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
     return list(
         trade_data_db.aggregate(
             [
-                {
-                    "$match": filter
-                },
+                {"$match": filter},
                 {
                     "$group": {
                         "_id": None,
@@ -159,7 +157,9 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
     )[0]["result"]
 
 
-def get_24h_traded_FTN_avg_price(trade_type: Literal["buy", "sell", "all"], missing: Literal["default", "ignore"]) -> Union[float, str]:
+def get_24h_traded_FTN_avg_price(
+    trade_type: Literal["buy", "sell", "all"], missing: Literal["default", "ignore"]
+) -> Union[float, str]:
     if get_24h_trade_count(trade_type) < 5:
         if missing == "default":
             return 0.1  # 返回官方指导价

@@ -135,7 +135,7 @@ def change_traded_amount() -> None:
         "number",
         label="已交易",
         value=order_data["order"]["amount"]["traded"],
-        help_text="不能小于当前值，不能大于总量"
+        help_text="不能小于当前值，不能大于总量",
     )
     put_input(
         "remaining_amount",
@@ -154,8 +154,15 @@ def change_traded_amount() -> None:
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
-                {"label": "更新", "value": "publish", "color": "success"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "更新",
+                    "value": "publish",
+                    "color": "success",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
@@ -171,5 +178,5 @@ def change_traded_amount() -> None:
     )
     bind_enter_key_callback(
         "traded_amount",
-        lambda _: on_change_button_clicked(order_id)
+        on_press=lambda _: on_change_button_clicked(order_id),
     )

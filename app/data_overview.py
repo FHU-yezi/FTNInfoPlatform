@@ -30,7 +30,6 @@ def data_overview() -> None:
     put_markdown("## 24 小时交易价格")
     per_hour_buy_avg_price = get_per_hour_trade_avg_price("buy", 24)
     per_hour_sell_avg_price = get_per_hour_trade_avg_price("sell", 24)
-    print(per_hour_buy_avg_price, per_hour_sell_avg_price)
     buy_x = [str(item["_id"]) for item in per_hour_buy_avg_price]
     buy_y = [item["avg_price"] for item in per_hour_buy_avg_price]
     sell_x = [str(item["_id"]) for item in per_hour_sell_avg_price]

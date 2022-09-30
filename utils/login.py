@@ -23,12 +23,27 @@ def require_login() -> str:
     uid_container: List[str] = []
 
     with popup("登录", size="large", closable=False):
-        put_input("user_name", "text", label="用户名"),
-        put_input("password", "password", label="密码"),
+        put_input(
+            "user_name",
+            "text",
+            label="用户名",
+        ),
+        put_input(
+            "password",
+            "password",
+            label="密码",
+        ),
         put_buttons(
             buttons=[
-                {"label": "登录", "value": "login", "color": "success"},
-                {"label": "注册", "value": "signup"},
+                {
+                    "label": "登录",
+                    "value": "login",
+                    "color": "success",
+                },
+                {
+                    "label": "注册",
+                    "value": "signup",
+                },
             ],
             onclick=[
                 lambda: on_login_button_clicked(uid_container),

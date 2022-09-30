@@ -145,8 +145,15 @@ def change_unit_price() -> None:
     with use_scope("buttons", clear=True):
         put_buttons(
             buttons=[
-                {"label": "更新", "value": "publish", "color": "success"},
-                {"label": "取消", "value": "cancel"},
+                {
+                    "label": "更新",
+                    "value": "publish",
+                    "color": "success",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
             ],
             onclick=[
                 lambda: on_change_button_clicked(order_id),
@@ -160,5 +167,5 @@ def change_unit_price() -> None:
     )
     bind_enter_key_callback(
         "unit_price",
-        on_press=lambda _: on_change_button_clicked(order_id)
+        on_press=lambda _: on_change_button_clicked(order_id),
     )

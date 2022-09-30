@@ -56,7 +56,10 @@ def index() -> None:
 
     # 必须传入 sanitize=False 禁用 XSS 攻击防护
     # 否则 target="_blank" 属性会消失，无法实现新标签页打开
-    put_markdown("".join(content), sanitize=False)
+    put_markdown(
+        "".join(content),
+        sanitize=False,
+    )
 
 
 # 将主页函数加入列表
