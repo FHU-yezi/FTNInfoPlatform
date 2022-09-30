@@ -20,7 +20,7 @@ def data_overview() -> None:
 
     put_markdown(
         f"""
-        24 小时平均买 / 卖价：{get_24h_traded_FTN_avg_price("buy")} / {get_24h_traded_FTN_avg_price("sell")}
+        24 小时平均买 / 卖价：{get_24h_traded_FTN_avg_price("buy", missing="ignore")} / {get_24h_traded_FTN_avg_price("sell", missing="ignore")}
         交易中意向单：{get_in_trading_orders_count("all")} 条
         已完成意向单：{get_finished_orders_count("all")} 条
         总交易量：{get_total_traded_amount()} 简书贝 / {get_total_traded_price()} 元

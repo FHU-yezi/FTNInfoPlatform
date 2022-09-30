@@ -121,7 +121,7 @@ def change_unit_price() -> None:
         "float",
         label="单价",
         value=order_data["order"]["price"]["unit"],
-        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order_type)}",
+        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order_type, missing='default')}",
     )
     put_input(
         "total_amount",
