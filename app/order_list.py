@@ -51,7 +51,7 @@ def order_list() -> None:
                 traded_amount=sell_order_data["order"]["amount"]["traded"],
                 remaining_amount=sell_order_data["order"]["amount"]["remaining"],
                 is_mine=sell_order_data["user"]["id"] == uid,
-                jianshu_url=get_jianshu_bind_url(buy_order_data["user"]["id"]),
+                jianshu_url=get_jianshu_bind_url(sell_order_data["user"]["id"]),
             )
         )
     if not sell_view:
