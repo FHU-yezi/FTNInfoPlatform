@@ -39,7 +39,11 @@ def get_finished_orders_count(order_type: Literal["buy", "sell", "all"]) -> int:
 
 
 def get_24h_trade_count(trade_type: Literal["buy", "sell", "all"]) -> int:
-    filter: Dict[str, Any] = {}
+    filter: Dict[str, Any] = {
+        "trade_time": {
+            "$gte": datetime.now() - timedelta(days=1),
+        }
+    }
     if trade_type in {"buy", "sell"}:
         filter["trade_type"] = trade_type
     return trade_data_db.count_documents(filter)
@@ -160,7 +164,7 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
 def get_24h_traded_FTN_avg_price(
     trade_type: Literal["buy", "sell", "all"], missing: Literal["default", "ignore"]
 ) -> Union[float, str]:
-    if get_24h_trade_count(trade_type) < 5:
+    if get_24h_trade_count(trade_type) < 3:
         if missing == "default":
             return 0.1  # 返回官方指导价
         else:
