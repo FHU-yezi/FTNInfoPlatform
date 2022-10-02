@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Literal, Union
 
+from utils.cache import timeout_cache
 from utils.db import order_data_db, trade_data_db
 
 
@@ -49,6 +50,7 @@ def get_24h_trade_count(trade_type: Literal["buy", "sell", "all"]) -> int:
     return trade_data_db.count_documents(filter)
 
 
+@timeout_cache(300)
 def get_total_traded_amount() -> int:
     result = list(
         trade_data_db.aggregate(
@@ -69,6 +71,7 @@ def get_total_traded_amount() -> int:
     return result[0]["result"]
 
 
+@timeout_cache(300)
 def get_total_traded_price() -> float:
     result = list(
         trade_data_db.aggregate(
@@ -161,6 +164,7 @@ def get_24h_traded_FTN_total_price(trade_type: Literal["buy", "sell"]) -> float:
     )[0]["result"]
 
 
+@timeout_cache(60)
 def get_24h_traded_FTN_avg_price(
     trade_type: Literal["buy", "sell", "all"], missing: Literal["default", "ignore"]
 ) -> Union[float, str]:

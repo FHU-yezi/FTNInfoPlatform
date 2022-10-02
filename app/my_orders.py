@@ -2,6 +2,7 @@ from data.order import (
     delete_order,
     get_my_active_order,
     get_my_finished_orders_list,
+    set_order_all_traded,
 )
 from data.token import create_token, verify_token
 from data.user import get_jianshu_bind_url
@@ -11,13 +12,13 @@ from pywebio.output import (
     put_buttons,
     put_markdown,
     put_tabs,
-    toast,
 )
 from utils.exceptions import TokenNotExistError
 from utils.html import link
 from utils.login import require_login
 from utils.page import get_token, get_url_to_module, jump_to, reload, set_token
 from widgets.order import put_finished_order_item, put_order_detail
+from widgets.toast import toast_success
 
 NAME: str = "我的意向单"
 DESC: str = "查看并修改自己的意向单"
@@ -26,7 +27,13 @@ VISIBILITY: bool = True
 
 def on_delete_confirmed(order_id: str) -> None:
     delete_order(order_id)
-    toast("删除成功", color="success")
+    toast_success("删除成功")
+    reload(delay=1)
+
+
+def on_set_all_traded_confirmed(order_id: str) -> None:
+    set_order_all_traded(order_id)
+    toast_success("已设为全部完成")
     reload(delay=1)
 
 
@@ -48,6 +55,36 @@ def on_change_traded_amount_button_clicked(order_id: str) -> None:
     )
 
 
+def on_set_all_traded_button_clicked(order_id: str) -> None:
+    with popup("全部完成", size="large"):
+        put_markdown(
+            """
+            确认要将这条意向单设为全部完成吗？
+
+            操作后，该意向单将显示在下方的“已完成”列表中。
+
+            如果您想要删除意向单，请点击“删除”按钮。
+            """
+        )
+        put_buttons(
+            buttons=[
+                {
+                    "label": "确认",
+                    "value": "confirm",
+                    "color": "warning",
+                },
+                {
+                    "label": "取消",
+                    "value": "cancel",
+                },
+            ],
+            onclick=[
+                lambda: on_set_all_traded_confirmed(order_id),
+                close_popup,
+            ],
+        )
+
+
 def on_order_delete_button_clicked(order_id: str) -> None:
     with popup("确认删除", size="large"):
         put_markdown(
@@ -56,7 +93,7 @@ def on_order_delete_button_clicked(order_id: str) -> None:
 
             删除后，该意向单将从列表中消失，并且**不会**显示在下方的“已完成”列表中。
 
-            如果您已经完成了该意向单的交易，请点击“修改已交易数量”按钮，并将“已交易”输入框的数值改为与总量相同的值。
+            如果您已经完成了该意向单的交易，请点击“全部完成”按钮。
             """
         )
         put_buttons(
@@ -130,6 +167,11 @@ def my_orders() -> None:
                     "color": "success",
                 },
                 {
+                    "label": "全部完成",
+                    "value": "set_all_traded",
+                    "color": "success",
+                },
+                {
                     "label": "删除",
                     "value": "delete",
                     "color": "warning",
@@ -138,6 +180,7 @@ def my_orders() -> None:
             onclick=[
                 lambda: on_change_unit_price_button_clicked(buy_order_id),
                 lambda: on_change_traded_amount_button_clicked(buy_order_id),
+                lambda: on_set_all_traded_button_clicked(buy_order_id),
                 lambda: on_order_delete_button_clicked(buy_order_id),
             ],
         )
@@ -178,6 +221,11 @@ def my_orders() -> None:
                     "color": "success",
                 },
                 {
+                    "label": "全部完成",
+                    "value": "set_all_traded",
+                    "color": "success",
+                },
+                {
                     "label": "删除",
                     "value": "delete",
                     "color": "warning",
@@ -186,6 +234,7 @@ def my_orders() -> None:
             onclick=[
                 lambda: on_change_unit_price_button_clicked(sell_order_id),
                 lambda: on_change_traded_amount_button_clicked(sell_order_id),
+                lambda: on_set_all_traded_button_clicked(sell_order_id),
                 lambda: on_order_delete_button_clicked(sell_order_id),
             ],
         )

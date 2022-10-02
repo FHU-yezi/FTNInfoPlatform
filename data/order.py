@@ -251,6 +251,39 @@ def delete_order(order_id: str) -> None:
     )
 
 
+def set_order_all_traded(order_id: str) -> None:
+    # 此处如果 Order ID 不存在，会抛出异常
+    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
+    order_data = get_order_data_from_order_id(order_id)
+
+    unit_price: float = order_data["order"]["price"]["unit"]
+    total_amount: int = order_data["order"]["amount"]["total"]
+    remaining_amount: int = order_data["order"]["amount"]["remaining"]
+    uid: str = order_data["user"]["id"]
+    data_to_update: Dict = {
+        "status": 1,  # 已完成
+        "finish_time": get_now_without_mileseconds(),
+        "order.amount": {
+            "total": total_amount,
+            "traded": total_amount,
+            "remaining": 0,
+        },
+    }
+    # 创建交易
+    trade_type: Literal["buy", "sell"] = order_data["order"]["type"]
+    create_trade(
+        trade_type=trade_type,
+        unit_price=unit_price,
+        trade_amount=remaining_amount,
+        order_id=order_id,
+        uid=uid,
+    )
+    order_data_db.update_one(
+        {"_id": ObjectId(order_id)},
+        {"$set": data_to_update},
+    )
+
+
 def get_active_orders_list(
     order_type: Literal["buy", "sell"], limit: int
 ) -> List[Dict]:
