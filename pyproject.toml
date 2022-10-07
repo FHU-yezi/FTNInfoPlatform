@@ -12,6 +12,7 @@ pymongo = "^4.2.0"
 PyYAML = "^6.0"
 pyecharts = "^1.9.1"
 httpx = "^0.23.0"
+APScheduler = "^3.9.1"
 
 
 [tool.poetry.group.dev.dependencies]
