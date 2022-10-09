@@ -5,6 +5,7 @@ from pywebio import start_server
 from pywebio.output import put_markdown
 
 from utils.config import config
+from utils.expire_check import scheduler as expire_check_scheduler
 from utils.html import link
 from utils.log import access_logger
 from utils.module_finder import Module, get_all_modules_info
@@ -75,6 +76,8 @@ modules_list.append(
 patched_modules_list: List[Module] = [patch_all(module) for module in modules_list]
 func_list: List[Callable[[], None]] = [x.page_func for x in patched_modules_list]
 
+# 启动过期检查任务
+expire_check_scheduler.start()
 start_server(
     func_list, host="0.0.0.0", port=config.deploy.port, cdn=config.deploy.pywebio_cdn
 )

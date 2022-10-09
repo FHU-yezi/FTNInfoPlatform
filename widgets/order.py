@@ -64,6 +64,7 @@ def put_order_item(
 def put_order_detail(
     order_type: Literal["buy", "sell"],
     publish_time: datetime,
+    expire_time: datetime,
     unit_price: float,
     total_price: float,
     total_amount: int,
@@ -75,6 +76,7 @@ def put_order_detail(
         ## {'买单'if order_type == "buy" else '卖单'}
 
         发布时间：{publish_time}
+        过期时间：{expire_time}
         单价：{unit_price}
         已交易 / 总量：{traded_amount} / {total_amount}
         剩余：{remaining_amount}

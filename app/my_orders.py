@@ -148,6 +148,7 @@ def my_orders() -> None:
         put_order_detail(
             order_type=buy_order_data["order"]["type"],
             publish_time=buy_order_data["publish_time"],
+            expire_time=buy_order_data["expire_time"],
             unit_price=buy_order_data["order"]["price"]["unit"],
             total_price=buy_order_data["order"]["price"]["total"],
             total_amount=buy_order_data["order"]["amount"]["total"],
@@ -202,6 +203,7 @@ def my_orders() -> None:
         put_order_detail(
             order_type=sell_order_data["order"]["type"],
             publish_time=sell_order_data["publish_time"],
+            expire_time=sell_order_data["expire_time"],
             unit_price=sell_order_data["order"]["price"]["unit"],
             total_price=sell_order_data["order"]["price"]["total"],
             total_amount=sell_order_data["order"]["amount"]["total"],

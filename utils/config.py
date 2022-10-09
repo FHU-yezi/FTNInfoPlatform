@@ -15,6 +15,7 @@ _DEFAULT_CONFIG = {
     "base_path": "./app",
     "footer": "",
     "token_expire_hours": 24,
+    "default_order_effective_hours": 48,
     "db": {
         "host": "localhost",
         "port": 27017,

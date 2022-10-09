@@ -11,3 +11,7 @@ def get_today_in_datetime_obj() -> datetime:
 
 def get_datetime_after_hours(datetime_obj: datetime, offset: int) -> datetime:
     return datetime_obj + timedelta(hours=offset)
+
+
+def get_nearest_expire_time(datetime_obj: datetime, effective_hours: int) -> datetime:
+    return datetime_obj.replace(minute=0, second=0) + timedelta(hours=effective_hours)
