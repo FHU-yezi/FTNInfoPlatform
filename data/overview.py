@@ -347,3 +347,17 @@ def get_per_day_trade_avg_price(
             ]
         )
     )
+
+
+def get_recent_trade_list(
+    trade_type: Literal["buy", "sell"], limit: int = 7
+) -> List[Dict]:
+    return (
+        trade_data_db.find(
+            {
+                "trade_type": trade_type,
+            },
+        )
+        .sort([("trade_time", -1)])
+        .limit(limit)
+    )
