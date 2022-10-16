@@ -1,6 +1,7 @@
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 from bson import ObjectId
+from utils.config import config
 from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
@@ -9,7 +10,10 @@ from utils.exceptions import (
     OrderStatusError,
     PriceIlliegalError,
 )
-from utils.time_helper import get_now_without_mileseconds
+from utils.time_helper import (
+    get_nearest_expire_time,
+    get_now_without_mileseconds,
+)
 
 from data.trade import create_trade
 from data.user import get_user_data_from_uid
@@ -104,15 +108,23 @@ def create_order(
     # 此处如果 UID 不存在，会抛出异常
     # 但调用方有责任保证 UID 存在，这是一个内部异常，因此不做捕获处理
     user_data = get_user_data_from_uid(uid)
+    now_time = get_now_without_mileseconds()
     order_data_db.insert_one(
         {
-            "publish_time": get_now_without_mileseconds(),
+            "publish_time": now_time,
+            "effective_hours": config.default_order_effective_hours,
+            "expire_time": get_nearest_expire_time(
+                now_time, config.default_order_effective_hours
+            ),
             "finish_time": None,
             "delete_time": None,
             "status": 0,
             "order": {
                 "type": order_type,
-                "price": {"unit": unit_price, "total": total_price},
+                "price": {
+                    "unit": unit_price,
+                    "total": total_price,
+                },
                 "amount": {
                     "total": total_amount,
                     "traded": 0,
@@ -355,3 +367,29 @@ def get_my_finished_orders_list(
             "user.id": uid,
         }
     ).limit(limit)
+
+
+def set_order_expired(order_id: str) -> None:
+    # 此处如果 Order ID 不存在，会抛出异常
+    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
+    order_data = get_order_data_from_order_id(order_id)
+    if order_data["status"] != 0:
+        raise OrderStatusError("不能对状态不为交易中的交易单进行过期操作")
+
+    data_to_update = {
+        "status": 3   # 已过期
+    }
+    order_data_db.update_one(
+        {"_id": ObjectId(order_id)},
+        {"$set": data_to_update},
+    )
+
+
+def get_all_trading_orders_list(order_type: Literal["buy", "sell", "all"]) -> List[Dict]:
+    filter: Dict[str, Any] = {
+        "status": 0  # 交易中
+    }
+    if order_type in {"buy", "sell"}:
+        filter["order.type"] = order_type
+
+    return order_data_db.find(filter)

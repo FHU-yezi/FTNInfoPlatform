@@ -1,8 +1,6 @@
-FROM python:3.8.10-alpine
+FROM python:3.8.10-slim
 
 ENV TZ Asia/Shanghai
-
-RUN apk add --update tzdata
 
 WORKDIR /app
 

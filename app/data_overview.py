@@ -1,8 +1,10 @@
 import pyecharts.options as opts
+from widgets.trade import put_trade_item
 from data.overview import (
     get_24h_traded_FTN_avg_price,
     get_finished_orders_count,
     get_in_trading_orders_count,
+    get_recent_trade_list,
     get_per_hour_trade_avg_price,
     get_total_traded_amount,
     get_total_traded_price,
@@ -66,5 +68,40 @@ def data_overview() -> None:
                     )
                 ),
             },
+        ]
+    )
+
+    put_markdown("# 近期成交")
+
+    buy_view = []
+    for buy_trade_data in get_recent_trade_list("buy"):
+        buy_view.append(
+            put_trade_item(
+                trade_time=buy_trade_data["trade_time"],
+                unit_price=buy_trade_data["unit_price"],
+                trade_amount=buy_trade_data["trade_amount"],
+                total_price=buy_trade_data["total_price"]
+            )
+        )
+    if not buy_view:
+        buy_view.append(put_markdown("没有近期成交的买单"))
+
+    sell_view = []
+    for sell_trade_data in get_recent_trade_list("sell"):
+        sell_view.append(
+            put_trade_item(
+                trade_time=sell_trade_data["trade_time"],
+                unit_price=sell_trade_data["unit_price"],
+                trade_amount=sell_trade_data["trade_amount"],
+                total_price=sell_trade_data["total_price"]
+            )
+        )
+    if not sell_view:
+        sell_view.append(put_markdown("没有近期成交的卖单"))
+
+    put_tabs(
+        [
+            {"title": "买单", "content": buy_view},
+            {"title": "卖单", "content": sell_view},
         ]
     )

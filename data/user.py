@@ -38,7 +38,6 @@ def get_user_jianshu_name(user_url: str) -> str:
         raise UserURLIlliegalError("获取数据时出现异常")
 
 
-@timeout_cache(1800)
 def get_jianshu_bind_url(uid: str) -> bool:
     return get_user_data_from_uid(uid)["jianshu"]["url"]
 
