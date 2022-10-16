@@ -3,7 +3,8 @@ from typing import Literal
 from data.order import create_order
 from data.overview import get_24h_traded_FTN_avg_price
 from data.token import create_token, verify_token
-from pywebio.output import put_buttons, put_markdown, use_scope
+from data.user import get_jianshu_bind_url
+from pywebio.output import popup, put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
 from utils.exceptions import (
     AmountIlliegalError,
@@ -11,6 +12,7 @@ from utils.exceptions import (
     PriceIlliegalError,
     TokenNotExistError,
 )
+from utils.html import link
 from utils.login import require_login
 from utils.page import (
     close_page,
@@ -101,6 +103,19 @@ def publish_order() -> None:
     except TokenNotExistError:
         uid = require_login()
         set_token(create_token(uid))
+
+    # 如果用户没有绑定简书账号，阻止其发布交易单
+    jianshu_bind_url: str = get_jianshu_bind_url(uid)
+    if not jianshu_bind_url:
+        with popup("绑定简书账号", size="large", closable=False):  # 不可关闭
+            put_markdown(
+                f"""
+                为避免虚假挂单干扰平台秩序，请在发布意向单前绑定简书账号。
+
+                {link("去绑定>>>", get_url_to_module("personal_center", ), new_window=True)}
+                """,
+                sanitize=False,
+            )
 
     order_type = "买单" if get_url_params().get("order_type", "buy") == "buy" else "卖单"
 

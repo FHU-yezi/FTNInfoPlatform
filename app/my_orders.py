@@ -12,6 +12,7 @@ from pywebio.output import (
     put_buttons,
     put_markdown,
     put_tabs,
+    put_warning,
 )
 from utils.exceptions import TokenNotExistError
 from utils.html import link
@@ -125,10 +126,12 @@ def my_orders() -> None:
     put_markdown("# 我的意向单")
 
     if not get_jianshu_bind_url(uid):
-        put_markdown(
-            "绑定简书账号，成交更快，"
-            + link("去绑定>>>", get_url_to_module("personal_center"), new_window=True),
-            sanitize=False,
+        put_warning(
+            put_markdown(
+                "绑定简书账号后才可发布意向单，"
+                + link("去绑定>>>", get_url_to_module("personal_center"), new_window=True),
+                sanitize=False,
+            ),
         )
 
     buy_order_data = get_my_active_order(uid, "buy")
