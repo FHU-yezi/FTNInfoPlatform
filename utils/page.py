@@ -1,7 +1,7 @@
 from time import sleep
 from typing import Any, Dict, Optional
 
-from pywebio.session import eval_js, run_js
+from pywebio.session import eval_js, info, run_js
 
 
 def set_footer(html: str) -> None:
@@ -97,3 +97,8 @@ def copy_to_clipboard(text: str) -> None:
         document.body.removeChild(el)
         """
     )
+
+
+def is_Android() -> bool:
+    # TODO
+    return "Android" in str(info.user_agent)
