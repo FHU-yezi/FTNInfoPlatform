@@ -4,6 +4,7 @@ from typing import Callable, List
 from pywebio import start_server
 from pywebio.output import put_markdown
 
+from data.overview import get_24h_traded_FTN_avg_price
 from utils.config import config
 from utils.expire_check import scheduler as expire_check_scheduler
 from utils.html import link
@@ -29,6 +30,10 @@ def index() -> None:
         # 简书贝信息交流中心
 
         版本：{config.version}
+
+        **24 小时平均买 / 卖价：{get_24h_traded_FTN_avg_price("buy", missing="ignore")} / {get_24h_traded_FTN_avg_price("sell", missing="ignore")}**
+
+        ---
         """
     )
     config.refresh()  # 刷新配置文件
@@ -76,7 +81,7 @@ modules_list.append(
 patched_modules_list: List[Module] = [patch_all(module) for module in modules_list]
 func_list: List[Callable[[], None]] = [x.page_func for x in patched_modules_list]
 
-# 启动过期检查任务
+# 启动意向单过期检查任务
 expire_check_scheduler.start()
 start_server(
     func_list, host="0.0.0.0", port=config.deploy.port, cdn=config.deploy.pywebio_cdn
