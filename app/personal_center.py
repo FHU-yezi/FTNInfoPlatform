@@ -20,7 +20,6 @@ from utils.exceptions import (
     DuplicatedUsernameError,
     DuplicatedUserURLError,
     PasswordIlliegalError,
-    PasswordNotChangedError,
     PasswordNotEqualError,
     TokenNotExistError,
     UsernameIlliegalError,
@@ -170,8 +169,6 @@ def on_change_password_confirmed(uid: str) -> None:
         toast_warn_and_return("两次输入的密码不一致")
     except UsernameOrPasswordWrongError:
         toast_error_and_return("旧密码错误")
-    except PasswordNotChangedError:
-        toast_warn_and_return("新密码不能与旧密码相同")
     else:
         expire_token(get_token())
         toast_success("修改成功，您将需要重新登录")
