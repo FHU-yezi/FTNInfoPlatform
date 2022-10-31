@@ -3,7 +3,7 @@ from data.token import verify_token
 from data.user import get_jianshu_bind_url
 from pywebio.output import put_markdown, put_tabs, put_warning
 from utils.exceptions import TokenNotExistError
-from utils.page import get_token
+from utils.page import get_token, is_Android
 from widgets.order import put_order_item
 
 NAME: str = "意向单列表"
@@ -33,6 +33,7 @@ def order_list() -> None:
                 remaining_amount=buy_order_data["order"]["amount"]["remaining"],
                 is_mine=buy_order_data["user"]["id"] == uid,
                 jianshu_url=get_jianshu_bind_url(buy_order_data["user"]["id"]),
+                is_Android=is_Android(),
             )
         )
     if not buy_view:
@@ -50,6 +51,7 @@ def order_list() -> None:
                 remaining_amount=sell_order_data["order"]["amount"]["remaining"],
                 is_mine=sell_order_data["user"]["id"] == uid,
                 jianshu_url=get_jianshu_bind_url(sell_order_data["user"]["id"]),
+                is_Android=is_Android(),
             )
         )
     if not sell_view:

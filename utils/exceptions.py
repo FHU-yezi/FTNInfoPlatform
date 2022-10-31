@@ -34,10 +34,6 @@ class UsernameNotChangedError(Exception):
     pass
 
 
-class PasswordNotChangedError(Exception):
-    pass
-
-
 class TokenNotExistError(Exception):
     pass
 

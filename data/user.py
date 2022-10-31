@@ -2,13 +2,11 @@ from typing import Dict
 
 from bson import ObjectId
 from httpx import get as httpx_get
-from utils.cache import timeout_cache
 from utils.db import user_data_db
 from utils.exceptions import (
     DuplicatedUsernameError,
     DuplicatedUserURLError,
     PasswordIlliegalError,
-    PasswordNotChangedError,
     PasswordNotEqualError,
     UIDNotExistError,
     UsernameIlliegalError,
@@ -18,7 +16,7 @@ from utils.exceptions import (
     UserURLIlliegalError,
     WeakPasswordError,
 )
-from utils.hash import get_hash
+from utils.hash import encrypt_password, check_password
 from utils.text_filter import (
     is_illiegal_password,
     is_illiegal_user_name,
@@ -93,13 +91,13 @@ def sign_up(
         raise DuplicatedUsernameError("用户名重复")
 
     now_time = get_now_without_mileseconds()
-    hashed_password: str = get_hash(password)
+    encrypted_password: str = encrypt_password(password)
     user_data_db.insert_one(
         {
             "signup_time": now_time,
             "last_active_time": now_time,
             "user_name": user_name,
-            "password": hashed_password,
+            "password": encrypted_password,
             "permissions": {
                 "admin": admin_permissions_level,
                 "user": user_permissions_level,
@@ -122,14 +120,15 @@ def log_in(user_name: str, password: str) -> str:
     if not password:
         raise PasswordIlliegalError("密码不能为空")
 
-    hashed_password: str = get_hash(password)
     user_data = user_data_db.find_one(
         {
             "user_name": user_name,
-            "password": hashed_password,
         }
     )
     if not user_data:  # 未查询到相应记录
+        raise UsernameOrPasswordWrongError("用户名或密码错误")
+
+    if not check_password(password, user_data["password"]):
         raise UsernameOrPasswordWrongError("用户名或密码错误")
 
     uid: str = str(user_data["_id"])
@@ -191,15 +190,13 @@ def change_password(
     user_data = user_data_db.find_one({"_id": ObjectId(uid)})
     if not user_data:
         raise UIDNotExistError("UID 不存在")
-    hashed_old_password: str = get_hash(old_password)
-    if user_data["password"] != hashed_old_password:
+    if not check_password(old_password, user_data["password"]):
         raise UsernameOrPasswordWrongError("旧密码错误")
-    hashed_new_password: str = get_hash(new_password)
-    if hashed_old_password == hashed_new_password:
-        raise PasswordNotChangedError("新密码不能与旧密码相同")
+
+    encrypted_new_password: str = encrypt_password(new_password)
 
     data_to_update: Dict = {
-        "password": hashed_new_password,
+        "password": encrypted_new_password,
     }
     user_data_db.update_one(
         {"_id": ObjectId(uid)},

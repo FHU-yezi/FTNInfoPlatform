@@ -3,6 +3,7 @@ from typing import Literal
 
 from pywebio.output import put_collapse, put_markdown, put_row
 from utils.html import link
+from utils.url_scheme import user_URL_to_URL_scheme
 
 from widgets.badge import put_badge
 from widgets.progress_bar import put_progress_bar
@@ -17,6 +18,7 @@ def put_order_item(
     remaining_amount: int,
     is_mine: bool,
     jianshu_url: str,
+    is_Android: bool,
 ):
     jianshu_binded: bool = bool(jianshu_url)  # 判断简书 URL 字段是否为空
 
@@ -54,6 +56,13 @@ def put_order_item(
             put_markdown(
                 "简书个人主页：" + link("点击跳转", jianshu_url, new_window=True)
                 if jianshu_binded
+                else "",
+                sanitize=False,
+            ),
+            put_markdown(
+                "一键跳转简书 App："
+                + link("点击跳转", user_URL_to_URL_scheme(jianshu_url), new_window=False)
+                if jianshu_binded and is_Android
                 else "",
                 sanitize=False,
             ),
