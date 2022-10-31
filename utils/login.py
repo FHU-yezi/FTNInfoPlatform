@@ -1,5 +1,4 @@
-from time import sleep
-from typing import List
+from queue import Queue
 
 from data.user import log_in
 from pywebio.output import close_popup, popup, put_buttons
@@ -20,7 +19,7 @@ from utils.page import get_url_to_module, jump_to
 
 
 def require_login() -> str:
-    uid_container: List[str] = []
+    uid_container: Queue = Queue(1)
 
     with popup("登录", size="large", closable=False):
         put_input(
@@ -55,14 +54,11 @@ def require_login() -> str:
         lambda _: on_login_button_clicked(uid_container),
     )
 
-    while True:
-        if len(uid_container) != 1:
-            sleep(0.1)
-        else:
-            return uid_container[0]
+    # 阻塞等待结果
+    return uid_container.get()
 
 
-def on_login_button_clicked(uid_container: List[str]) -> None:
+def on_login_button_clicked(uid_container: Queue) -> None:
     user_name: str = pin.user_name
     password: str = pin.password
 
@@ -77,7 +73,7 @@ def on_login_button_clicked(uid_container: List[str]) -> None:
     else:
         toast_success("登录成功")
         close_popup()
-        uid_container.append(uid)
+        uid_container.put(uid)
 
 
 def on_signup_button_clicked() -> None:
