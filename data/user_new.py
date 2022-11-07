@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Literal, Optional, Sequence
 
 from bson import ObjectId
 from httpx import get as httpx_get
@@ -98,10 +98,6 @@ class User:
         self._dirty: List[str] = []
 
     @property
-    def is_jianshu_binded(self) -> bool:
-        return bool(self.jianshu_url)
-
-    @property
     def object_id(self) -> ObjectId:
         return ObjectId(self.id)
 
@@ -128,7 +124,7 @@ class User:
             data_to_init_func[attr_name] = v
 
         # 调用 __init__ 初始化对象
-        return User(**data_to_init_func)
+        return cls(**data_to_init_func)
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # 由于脏属性列表在 __init__ 函数的末尾，当该列表存在时
@@ -181,8 +177,53 @@ class User:
         # 清空脏数据列表
         self._dirty.clear()
 
-    def remove(self) -> None:
+    def delete(self) -> None:
         user_data_db.delete_one({"_id": self.object_id})
+
+    @property
+    def buy_order(self):
+        from data.order_new import Order
+
+        db_data = user_data_db.find_one(
+            {
+                "order.type": "buy",
+                "user.id": self.object_id,
+            },
+        )
+        if db_data:
+            return Order.from_db_data(db_data)
+
+    @property
+    def sell_order(self):
+        from data.order_new import Order
+
+        db_data = user_data_db.find_one(
+            {
+                "order.type": "sell",
+                "user.id": self.object_id,
+            },
+        )
+        if db_data:
+            return Order.from_db_data(db_data)
+
+    def finished_orders(self, order_type: Literal["buy", "sell"], limit: int) -> List:
+        from utils.db import order_data_db
+
+        data_list: List[Dict] = order_data_db.find(
+            {
+                "status": 1,  # 已完成
+                "order.type": order_type,
+                "user.id": self.id,
+            }
+        ).limit(limit)
+
+        from data.order_new import Order
+
+        return [Order.from_db_data(item) for item in data_list]
+
+    @property
+    def is_jianshu_binded(self) -> bool:
+        return bool(self.jianshu_url)
 
     def update_last_active_time(self) -> None:
         self.last_active_time = get_now_without_mileseconds()
@@ -238,7 +279,7 @@ class User:
         )
 
         # 返回新注册的用户对象
-        return User.from_id(insert_result.inserted_id)
+        return cls.from_id(insert_result.inserted_id)
 
     @classmethod
     def login(cls, user_name: str, password: str) -> "User":
