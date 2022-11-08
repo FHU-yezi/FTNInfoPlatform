@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 
 def get_reversed_dict(item: Dict) -> Dict:
