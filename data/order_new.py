@@ -191,6 +191,16 @@ class Order:
 
         return User.from_id(self.user_id)
 
+    @property
+    def trade_list(self):
+        from data.trade_new import Trade
+        from utils.db import trade_data_db
+
+        db_data_list: List[Dict] = trade_data_db.find(
+            {"order.id": self.id},
+        )
+        return [Trade.from_db_data(item) for item in db_data_list]
+
     @classmethod
     def create(
         cls,
