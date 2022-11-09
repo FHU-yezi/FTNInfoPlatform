@@ -9,6 +9,7 @@ from utils.dict_helper import flatten_dict, get_reversed_dict
 from utils.exceptions import (
     AmountIlliegalError,
     DuplicatedOrderError,
+    OrderIDNotExistError,
     OrderStatusError,
     PriceIlliegalError,
 )
@@ -114,6 +115,8 @@ class Order:
     @classmethod
     def from_id(cls, id: str) -> "Order":
         db_data = order_data_db.find_one({"_id": ObjectId(id)})
+        if not db_data:
+            raise OrderIDNotExistError
         return cls.from_db_data(db_data)
 
     @classmethod

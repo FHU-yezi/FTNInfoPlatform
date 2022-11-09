@@ -5,7 +5,11 @@ from bson import ObjectId
 
 from utils.db import trade_data_db
 from utils.dict_helper import flatten_dict, get_reversed_dict
-from utils.exceptions import AmountIlliegalError, PriceIlliegalError
+from utils.exceptions import (
+    AmountIlliegalError,
+    PriceIlliegalError,
+    TradeNotExistError,
+)
 from utils.time_helper import get_now_without_mileseconds
 
 
@@ -53,6 +57,8 @@ class Trade:
     @classmethod
     def from_id(cls, id: str) -> "Trade":
         db_data = trade_data_db.find_one({"_id": ObjectId(id)})
+        if not db_data:
+            raise TradeNotExistError
         return cls.from_db_data(db_data)
 
     @classmethod

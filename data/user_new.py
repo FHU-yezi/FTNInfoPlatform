@@ -13,6 +13,7 @@ from utils.exceptions import (
     PasswordIlliegalError,
     PasswordNotEqualError,
     UsernameIlliegalError,
+    UIDNotExistError,
     UsernameNotChangedError,
     UsernameOrPasswordWrongError,
     UserURLIlliegalError,
@@ -109,6 +110,8 @@ class User:
     @classmethod
     def from_id(cls, id: str) -> "User":
         db_data = user_data_db.find_one({"_id": ObjectId(id)})
+        if not db_data:
+            raise UIDNotExistError
         return cls.from_db_data(db_data)
 
     @classmethod

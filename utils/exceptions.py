@@ -68,3 +68,7 @@ class DuplicatedUserURLError(Exception):
 
 class JianshuAlreadyBindedError(Exception):
     pass
+
+
+class TradeNotExistError(Exception):
+    pass

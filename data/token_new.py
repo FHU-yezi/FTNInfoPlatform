@@ -63,6 +63,8 @@ class Token:
     @classmethod
     def from_id(cls, id: str) -> "Token":
         db_data = token_data_db.find_one({"_id": ObjectId(id)})
+        if not db_data:
+            raise TokenNotExistError
         return cls.from_db_data(db_data)
 
     @classmethod
