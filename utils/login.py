@@ -3,6 +3,7 @@ from queue import Queue
 from data.user import log_in
 from pywebio.output import close_popup, popup, put_buttons
 from pywebio.pin import pin, put_input
+from data.user_new import User
 from widgets.toast import (
     toast_error_and_return,
     toast_success,
@@ -18,7 +19,7 @@ from utils.exceptions import (
 from utils.page import get_url_to_module, jump_to
 
 
-def require_login() -> str:
+def require_login() -> User:
     uid_container: Queue = Queue(1)
 
     with popup("登录", size="large", closable=False):
@@ -55,7 +56,8 @@ def require_login() -> str:
     )
 
     # 阻塞等待结果
-    return uid_container.get()
+    uid = uid_container.get()
+    return User.from_id(uid)
 
 
 def on_login_button_clicked(uid_container: Queue) -> None:
