@@ -1,47 +1,47 @@
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Sequence
+from time import time
+from typing import Any, Dict, List, Sequence
 
 from bson import ObjectId
 
-from utils.db import trade_data_db
+from utils.config import config
+from utils.db import token_data_db
 from utils.dict_helper import flatten_dict, get_reversed_dict
-from utils.exceptions import AmountIlliegalError, PriceIlliegalError
-from utils.time_helper import get_now_without_mileseconds
+from utils.exceptions import TokenNotExistError
+from utils.hash import get_hash
+from utils.time_helper import (
+    get_datetime_after_hours,
+    get_now_without_mileseconds,
+)
 
 
-class Trade:
+def generate_token(uid: str) -> str:
+    return get_hash(str(time()) + uid)
+
+
+class Token:
     attr_db_key_mapping: Dict[str, str] = {
         "id": "_id",
-        "trade_time": "trade_time",
-        "type": "trade_type",
-        "unit_price": "unit_price",
-        "trade_amount": "trade_amount",
-        "total_price": "total_price",
-        "order_id": "order.id",
+        "create_time": "create_time",
+        "expire_time": "expire_time",
         "user_id": "user.id",
+        "value": "token",
     }
     db_key_attr_mapping = get_reversed_dict(attr_db_key_mapping)
 
     def __init__(
         self,
         id: str,
-        trade_time: datetime,
-        type: Literal["buy", "sell"],
-        unit_price: float,
-        trade_amount: int,
-        total_price: float,
-        order_id: str,
+        create_time: datetime,
+        expire_time: datetime,
         user_id: str,
+        value: str,
     ) -> None:
         self.id = id
-        self.trade_time = trade_time
-        # 此处覆盖了内置函数 type，该作用域内不会使用到这个函数
-        self.type = type
-        self.unit_price = unit_price
-        self.trade_amount = trade_amount
-        self.total_price = total_price
-        self.order_id = order_id
+        self.create_time = create_time
+        self.expire_time = expire_time
         self.user_id = user_id
+        self.value = value
 
         # 脏属性列表必须在其它属性设置后再被创建
         self._dirty: List[str] = []
@@ -50,13 +50,23 @@ class Trade:
     def object_id(self) -> ObjectId:
         return ObjectId(self.id)
 
+    @property
+    def is_expired(self) -> bool:
+        return self.expire_time < datetime.now()
+
+    @property
+    def user(self):
+        from data.user_new import User
+
+        return User.from_id(self.user_id)
+
     @classmethod
-    def from_id(cls, id: str) -> "Trade":
-        db_data = trade_data_db.find_one({"_id": ObjectId(id)})
+    def from_id(cls, id: str) -> "Token":
+        db_data = token_data_db.find_one({"_id": ObjectId(id)})
         return cls.from_db_data(db_data)
 
     @classmethod
-    def from_db_data(cls, db_data: Dict) -> "Trade":
+    def from_db_data(cls, db_data: Dict) -> "Token":
         # 展平数据库查询结果
         db_data = flatten_dict(db_data)
         db_data["_id"] = str(db_data["_id"])
@@ -70,6 +80,14 @@ class Trade:
 
         # 调用 __init__ 初始化对象
         return cls(**data_to_init_func)
+
+    @classmethod
+    def from_token_value(cls, token_value: str) -> "Token":
+        db_data = token_data_db.find_one({"token": token_value})
+        if not db_data:
+            raise TokenNotExistError("Token 不存在或已过期")
+
+        return cls.from_db_data(db_data)
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # 由于脏属性列表在 __init__ 函数的末尾，当该列表存在时
@@ -94,7 +112,7 @@ class Trade:
             data_to_update[db_key] = getattr(self, attr)
 
         # 更新数据库中的信息
-        trade_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
+        token_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
         # 清空脏数据列表
         self._dirty.clear()
 
@@ -110,7 +128,7 @@ class Trade:
             self._dirty.remove(attr)
 
         # 更新数据库中的信息
-        trade_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
+        token_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
 
     def sync_all(self) -> None:
         data_to_update = {}
@@ -118,59 +136,46 @@ class Trade:
             data_to_update[db_key] = getattr(self, attr)
 
         # 更新数据库中的信息
-        trade_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
+        token_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
         # 清空脏数据列表
         self._dirty.clear()
 
     def remove(self) -> None:
-        trade_data_db.delete_one({"_id": self.object_id})
-
-    @property
-    def order(self):
-        from data.order_new import Order
-
-        return Order.from_id(self.order_id)
-
-    @property
-    def user(self):
-        from data.user_new import User
-
-        return User.from_id(self.user_id)
+        token_data_db.delete_one({"_id": self.object_id})
 
     @classmethod
-    def create(
-        cls,
-        trade_type: Literal["buy", "sell"],
-        unit_price: float,
-        trade_amount: int,
-        order_obj,
-    ) -> "Trade":
-        # 调用方有责任保证 Order ID 和 UID 存在，此函数不会进行校验
-        if trade_type not in {"buy", "sell"}:
-            raise TypeError("参数 order_type 必须为 buy 或 sell")
-        if unit_price is None:
-            raise PriceIlliegalError("单价不能为空")
-        if trade_amount is None:
-            raise AmountIlliegalError("交易量不能为空")
-        if not 0.05 < unit_price <= 0.2:
-            raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
-
-        total_price: float = round(unit_price * trade_amount, 2)
-        insert_result = trade_data_db.insert_one(
+    def create(cls, user_obj) -> "Token":
+        now_time: datetime = get_now_without_mileseconds()
+        token: str = generate_token(user_obj.id)
+        insert_result = token_data_db.insert_one(
             {
-                "trade_time": get_now_without_mileseconds(),
-                "trade_type": trade_type,
-                "unit_price": unit_price,
-                "trade_amount": trade_amount,
-                "total_price": total_price,
-                "order": {
-                    "id": order_obj.id,
-                },
+                "create_time": now_time,
+                "expire_time": get_datetime_after_hours(
+                    now_time, offset=config.token_expire_hours
+                ),
                 "user": {
-                    "id": order_obj.user_id,
+                    "id": user_obj.id,
                 },
+                "token": token,
             }
         )
 
-        # 返回新创建的交易对象
+        # 返回新创建的 Token 对象
         return cls.from_id(insert_result.inserted_id)
+
+    def update_expire_time(self) -> None:
+        if self.is_expired:
+            raise TokenNotExistError("Token 不存在或已过期")
+
+        self.expire_time = get_datetime_after_hours(
+            get_now_without_mileseconds(),
+            config.token_expire_hours,
+        )
+        self.sync()
+
+    def expire(self) -> None:
+        # 将过期时间设为现在，不会更新到数据库，
+        # 但可以使 self.is_expired 返回 True
+        self.expire_time = get_now_without_mileseconds()
+
+        token_data_db.delete_one({"token": self.value})

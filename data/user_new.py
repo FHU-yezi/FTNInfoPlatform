@@ -115,6 +115,7 @@ class User:
     def from_db_data(cls, db_data: Dict) -> "User":
         # 展平数据库查询结果
         db_data = flatten_dict(db_data)
+        db_data["_id"] = str(db_data["_id"])
 
         data_to_init_func: Dict[str, Any] = {}
         for k, v in db_data.items():
@@ -216,10 +217,26 @@ class User:
                 "user.id": self.id,
             }
         ).limit(limit)
+        if not data_list:
+            return []
 
         from data.order_new import Order
 
         return [Order.from_db_data(item) for item in data_list]
+
+    @property
+    def tokens(self):
+        from utils.db import token_data_db
+
+        data_list: List[Dict] = token_data_db.find(
+            {"user.id": self.id},
+        )
+        if not data_list:
+            return []
+
+        from data.token_new import Token
+
+        return [Token.from_db_data(item) for item in data_list]
 
     @property
     def is_jianshu_binded(self) -> bool:

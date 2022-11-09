@@ -120,6 +120,7 @@ class Order:
     def from_db_data(cls, db_data: Dict) -> "Order":
         # 展平数据库查询结果
         db_data = flatten_dict(db_data)
+        db_data["_id"] = str(db_data["_id"])
 
         data_to_init_func: Dict[str, Any] = {}
         for k, v in db_data.items():
