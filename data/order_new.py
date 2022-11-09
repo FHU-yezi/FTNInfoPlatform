@@ -135,6 +135,12 @@ class Order:
         # 调用 __init__ 初始化对象
         return cls(**data_to_init_func)
 
+    def __eq__(self, __o: Any) -> bool:
+        if self.__class__ != __o.__class__:
+            return False
+
+        return self.id == __o.id
+
     def __setattr__(self, __name: str, __value: Any) -> None:
         # 由于脏属性列表在 __init__ 函数的末尾，当该列表存在时
         # 证明 __init__ 过程已完成

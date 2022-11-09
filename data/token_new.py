@@ -85,11 +85,22 @@ class Token:
 
     @classmethod
     def from_token_value(cls, token_value: str) -> "Token":
+        # 调用此方法的 Token 值可能为空字符串
+        # 先进行判断再查询数据库
+        if not token_value:
+            raise TokenNotExistError
+
         db_data = token_data_db.find_one({"token": token_value})
         if not db_data:
             raise TokenNotExistError("Token 不存在或已过期")
 
         return cls.from_db_data(db_data)
+
+    def __eq__(self, __o: Any) -> bool:
+        if self.__class__ != __o.__class__:
+            return False
+
+        return self.id == __o.id
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # 由于脏属性列表在 __init__ 函数的末尾，当该列表存在时

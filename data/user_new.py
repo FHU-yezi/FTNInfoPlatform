@@ -12,8 +12,8 @@ from utils.exceptions import (
     JianshuAlreadyBindedError,
     PasswordIlliegalError,
     PasswordNotEqualError,
-    UsernameIlliegalError,
     UIDNotExistError,
+    UsernameIlliegalError,
     UsernameNotChangedError,
     UsernameOrPasswordWrongError,
     UserURLIlliegalError,
@@ -130,6 +130,12 @@ class User:
         # 调用 __init__ 初始化对象
         return cls(**data_to_init_func)
 
+    def __eq__(self, __o: Any) -> bool:
+        if self.__class__ != __o.__class__:
+            return False
+
+        return self.id == __o.id
+
     def __setattr__(self, __name: str, __value: Any) -> None:
         # 由于脏属性列表在 __init__ 函数的末尾，当该列表存在时
         # 证明 __init__ 过程已完成
@@ -240,6 +246,12 @@ class User:
         from data.token_new import Token
 
         return [Token.from_db_data(item) for item in data_list]
+
+    def expire_all_tokens(self) -> None:
+        tokens: List = self.tokens
+
+        for token in tokens:
+            token.expire()
 
     @property
     def is_jianshu_binded(self) -> bool:
@@ -355,8 +367,8 @@ class User:
         self.encrypted_password = encrypted_new_password
         self.sync()
 
-        # TODO: 自动过期用户的 Token
-        # 将用户当前的 Token 过期，该部分由调用方完成
+        # 过期用户的所有 Token
+        self.expire_all_tokens()
 
     def bind_jianshu_account(self, jianshu_url: str) -> None:
         if not jianshu_url:
@@ -376,3 +388,8 @@ class User:
         self.jianshu_url = jianshu_url
         self.jianshu_name = jianshu_name
         self.sync()
+
+    def generate_token(self):
+        from data.token_new import Token
+
+        return Token.create(self)
