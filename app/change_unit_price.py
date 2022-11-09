@@ -1,13 +1,10 @@
-from typing import Dict
-
-from bson import ObjectId
-from data.order import change_order_unit_price, get_order_data_from_order_id
-from data.overview import get_24h_traded_FTN_avg_price
-from data.token import create_token, verify_token
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
+
+from data.order_new import Order
+from data.overview import get_24h_traded_FTN_avg_price
+from data.token_new import Token
 from utils.callback import bind_enter_key_callback
-from utils.db import order_data_db
 from utils.exceptions import (
     OrderIDNotExistError,
     PriceIlliegalError,
@@ -29,10 +26,6 @@ DESC: str = "修改意向单的单价"
 VISIBILITY: bool = False
 
 
-def get_order_data(order_id: str) -> Dict:
-    return order_data_db.find_one({"_id": ObjectId(order_id)})
-
-
 def on_unit_price_input_changed(_) -> None:
     unit_price: float = pin.unit_price
     total_amount: float = pin.total_amount
@@ -47,11 +40,11 @@ def on_unit_price_input_changed(_) -> None:
     pin_update("total_price", value=total_price)
 
 
-def on_change_button_clicked(order_id: str) -> None:
-    unit_price: float = pin.unit_price
+def on_change_button_clicked(order: Order) -> None:
+    new_unit_price: float = pin.unit_price
 
     try:
-        change_order_unit_price(order_id, unit_price)
+        order.change_unit_price(new_unit_price)
     except PriceIlliegalError:
         toast_error_and_return("单价为空或不在正常范围内")
     else:
@@ -86,60 +79,60 @@ def change_unit_price() -> None:
         toast_error_and_return("请求参数错误")
 
     try:
-        order_data = get_order_data_from_order_id(order_id)
+        order_id = Order.from_id(order_id)
     except OrderIDNotExistError:
         toast_error_and_return("请求参数错误")
 
     try:
-        uid = verify_token(get_token())
+        user = Token.from_token_value(get_token()).user
     except TokenNotExistError:
-        uid = require_login()
-        set_token(create_token(uid))
+        user = require_login()
+        token = user.generate_token()
+        set_token(token.value)
 
-    if order_data["user"]["id"] != uid:
+    if order_id.user != user:
         toast_error_and_return("您无权修改该意向单")
 
     put_markdown("# 修改意向单价格")
-    order_type = order_data["order"]["type"]
     put_markdown(
         f"""
-        发布时间：{order_data['publish_time']}
-        意向单类型：{"买单" if order_data["order"]["type"] == "buy" else "卖单"}
+        发布时间：{order_id.publish_time}
+        意向单类型：{"买单" if order_id.type == "buy" else "卖单"}
         """
     )
     put_input(
         "unit_price",
         "float",
         label="单价",
-        value=order_data["order"]["price"]["unit"],
-        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order_type, missing='default')}",
+        value=order_id.unit_price,
+        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order_id.type, missing='default')}",
     )
     put_input(
         "total_amount",
         "number",
         label="总量",
-        value=order_data["order"]["amount"]["total"],
+        value=order_id.total_amount,
         readonly=True,
     )
     put_input(
         "traded_amount",
         "number",
         label="已交易",
-        value=order_data["order"]["amount"]["traded"],
+        value=order_id.traded_amount,
         readonly=True,
     )
     put_input(
         "remaining_amount",
         "number",
         label="剩余可交易",
-        value=order_data["order"]["amount"]["remaining"],
+        value=order_id.remaining_amount,
         readonly=True,
     )
     put_input(
         "total_price",
         "number",
         label="总价",
-        value=order_data["order"]["price"]["total"],
+        value=order_id.total_price,
         readonly=True,
     )
     with use_scope("buttons", clear=True):

@@ -274,17 +274,17 @@ class Order:
         # 返回新创建的订单对象
         return cls.from_id(insert_result.inserted_id)
 
-    def change_unit_price(self, unit_price: float) -> None:
-        if unit_price is None:
+    def change_unit_price(self, new_unit_price: float) -> None:
+        if new_unit_price is None:
             raise PriceIlliegalError("单价不能为空")
-        if not 0.05 < unit_price <= 0.2:
+        if not 0.05 < new_unit_price <= 0.2:
             raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
-        if round(unit_price, 3) != unit_price:  # 大于三位小数
+        if round(new_unit_price, 3) != new_unit_price:  # 大于三位小数
             raise PriceIlliegalError("价格只支持三位小数")
 
-        total_price: float = round(unit_price * self.total_amount, 2)
+        total_price: float = round(new_unit_price * self.total_amount, 2)
 
-        self.unit_price = unit_price
+        self.unit_price = new_unit_price
         self.total_price = total_price
         self.sync()
 

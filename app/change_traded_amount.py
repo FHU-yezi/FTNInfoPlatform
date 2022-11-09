@@ -159,7 +159,7 @@ def change_traded_amount() -> None:
                 },
             ],
             onclick=[
-                lambda: on_change_button_clicked(order_id),
+                lambda: on_change_button_clicked(order),
                 close_page,
             ],
         )
@@ -172,5 +172,5 @@ def change_traded_amount() -> None:
     )
     bind_enter_key_callback(
         "traded_amount",
-        on_press=lambda _: on_change_button_clicked(order_id),
+        on_press=lambda _: on_change_button_clicked(order),
     )
