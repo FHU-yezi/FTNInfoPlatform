@@ -1,8 +1,3 @@
-from typing import Dict
-
-from bson import ObjectId
-from data.order import change_order_traded_amount, get_order_data_from_order_id
-from data.token import create_token, verify_token
 from pywebio.output import (
     clear_scope,
     put_buttons,
@@ -11,8 +6,10 @@ from pywebio.output import (
     use_scope,
 )
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
+
+from data.order_new import Order
+from data.token_new import Token
 from utils.callback import bind_enter_key_callback
-from utils.db import order_data_db
 from utils.exceptions import (
     AmountIlliegalError,
     OrderIDNotExistError,
@@ -34,10 +31,6 @@ DESC: str = "修改意向单的已交易数量"
 VISIBILITY: bool = False
 
 
-def get_order_data(order_id: str) -> Dict:
-    return order_data_db.find_one({"_id": ObjectId(order_id)})
-
-
 def on_traded_amount_input_changed() -> None:
     traded_amount: int = pin.traded_amount
     total_amount: int = pin.total_amount
@@ -57,11 +50,11 @@ def on_traded_amount_input_changed() -> None:
     pin_update("remaining_amount", value=remaining_amount)
 
 
-def on_change_button_clicked(order_id: str) -> None:
-    traded_amount: int = pin.traded_amount
+def on_change_button_clicked(order: Order) -> None:
+    new_traded_amount: int = pin.traded_amount
 
     try:
-        change_order_traded_amount(order_id, traded_amount)
+        order.change_traded_amount(new_traded_amount)
     except AmountIlliegalError:
         toast_error_and_return("已交易数量为空或不在正常范围内")
     else:
@@ -96,59 +89,60 @@ def change_traded_amount() -> None:
         toast_error_and_return("请求参数错误")
 
     try:
-        order_data = get_order_data_from_order_id(order_id)
+        order = Order.from_id(order_id)
     except OrderIDNotExistError:
         toast_error_and_return("请求参数错误")
 
     try:
-        uid = verify_token(get_token())
+        user = Token.from_token_value(get_token()).user
     except TokenNotExistError:
-        uid = require_login()
-        set_token(create_token(uid))
+        user = require_login()
+        token = user.generate_token()
+        set_token(token.value)
 
-    if order_data["user"]["id"] != uid:
+    if order.user != user:
         toast_error_and_return("您无权修改该意向单")
 
     put_markdown("# 修改已交易数量")
     put_markdown(
         f"""
-        发布时间：{order_data['publish_time']}
-        意向单类型：{"买单" if order_data["order"]["type"] == "buy" else "卖单"}
+        发布时间：{order.publish_time}
+        意向单类型：{"买单" if order.type == "buy" else "卖单"}
         """
     )
     put_input(
         "unit_price",
         "float",
         label="单价",
-        value=order_data["order"]["price"]["unit"],
+        value=order.unit_price,
         readonly=True,
     )
     put_input(
         "total_amount",
         "number",
         label="总量",
-        value=order_data["order"]["amount"]["total"],
+        value=order.total_amount,
         readonly=True,
     )
     put_input(
         "traded_amount",
         "number",
         label="已交易",
-        value=order_data["order"]["amount"]["traded"],
+        value=order.traded_amount,
         help_text="不能小于当前值，不能大于总量",
     )
     put_input(
         "remaining_amount",
         "number",
         label="剩余",
-        value=order_data["order"]["amount"]["remaining"],
+        value=order.remaining_amount,
         readonly=True,
     )
     put_input(
         "total_price",
         "number",
         label="总价",
-        value=order_data["order"]["price"]["total"],
+        value=order.total_price,
         readonly=True,
     )
     with use_scope("buttons", clear=True):
