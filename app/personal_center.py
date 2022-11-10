@@ -1,10 +1,3 @@
-from data.token import create_token, expire_token, verify_token
-from data.user import (
-    bind_jianshu_account,
-    change_password,
-    change_user_name,
-    get_user_data_from_uid,
-)
 from pywebio.output import (
     close_popup,
     popup,
@@ -15,6 +8,9 @@ from pywebio.output import (
     use_scope,
 )
 from pywebio.pin import pin, put_input
+
+from data.token_new import Token
+from data.user_new import User
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,
@@ -41,14 +37,14 @@ DESC: str = "查看并修改自己的个人信息"
 VISIBILITY: bool = True
 
 
-def on_change_user_name_button_clicked(uid: str, old_user_name: str) -> None:
+def on_change_user_name_button_clicked(user: User) -> None:
     with popup(title="修改昵称", size="large"):
         put_input(
             "new_user_name",
             "text",
             label="新昵称",
             help_text="建议与您的简书昵称相同",
-            value=old_user_name,
+            value=user.name,
         )
 
         with use_scope("buttons", clear=True):
@@ -65,21 +61,21 @@ def on_change_user_name_button_clicked(uid: str, old_user_name: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_change_user_name_confirmed(uid),
+                    lambda: on_change_user_name_confirmed(user),
                     close_popup,
                 ],
             )
             bind_enter_key_callback(
                 "new_user_name",
-                on_press=lambda _: on_change_user_name_confirmed(uid),
+                on_press=lambda _: on_change_user_name_confirmed(user),
             )
 
 
-def on_change_user_name_confirmed(uid: str) -> None:
-    new_user_name: str = pin.new_user_name
+def on_change_user_name_confirmed(user: User) -> None:
+    new_name: str = pin.new_user_name
 
     try:
-        change_user_name(uid, new_user_name)
+        user.change_name(new_name)
     except UsernameIlliegalError:
         toast_error_and_return("新昵称为空或不合法")
     except DuplicatedUsernameError:
@@ -112,7 +108,7 @@ def on_change_user_name_confirmed(uid: str) -> None:
         reload(delay=1)
 
 
-def on_change_password_button_clicked(uid: str) -> None:
+def on_change_password_button_clicked(user: User) -> None:
     with popup("修改密码", size="large"):
         put_input(
             "old_password",
@@ -144,23 +140,23 @@ def on_change_password_button_clicked(uid: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_change_password_confirmed(uid),
+                    lambda: on_change_password_confirmed(user),
                     close_popup,
                 ],
             )
     bind_enter_key_callback(
         "new_password_again",
-        on_press=lambda _: on_change_password_confirmed(uid),
+        on_press=lambda _: on_change_password_confirmed(user),
     )
 
 
-def on_change_password_confirmed(uid: str) -> None:
+def on_change_password_confirmed(user: User) -> None:
     old_password: str = pin.old_password
     new_password: str = pin.new_password
     new_password_again: str = pin.new_password_again
 
     try:
-        change_password(uid, old_password, new_password, new_password_again)
+        user.change_password(old_password, new_password, new_password_again)
     except PasswordIlliegalError:
         toast_error_and_return("密码为空或不合法")
     except WeakPasswordError:
@@ -170,7 +166,6 @@ def on_change_password_confirmed(uid: str) -> None:
     except UsernameOrPasswordWrongError:
         toast_error_and_return("旧密码错误")
     else:
-        expire_token(get_token())
         toast_success("修改成功，您将需要重新登录")
         # 将按钮设为不可用
         # TODO
@@ -197,12 +192,12 @@ def on_change_password_confirmed(uid: str) -> None:
 
 
 def on_logout_button_clicked() -> None:
-    expire_token(get_token())
+    Token.from_token_value(get_token()).expire()
     toast_success("您已安全退出")
     reload(delay=1)
 
 
-def on_bind_jianshu_account_button_clicked(uid: str) -> None:
+def on_bind_jianshu_account_button_clicked(user: User) -> None:
     with popup("绑定简书账号", size="large"):
         put_markdown(
             """
@@ -229,20 +224,21 @@ def on_bind_jianshu_account_button_clicked(uid: str) -> None:
                     },
                 ],
                 onclick=[
-                    lambda: on_bind_jianshu_account_confirmed(uid),
+                    lambda: on_bind_jianshu_account_confirmed(user),
                     close_popup,
                 ],
             )
     bind_enter_key_callback(
         "jianshu_url",
-        on_press=lambda _: on_bind_jianshu_account_confirmed(uid),
+        on_press=lambda _: on_bind_jianshu_account_confirmed(user),
     )
 
 
-def on_bind_jianshu_account_confirmed(uid: str) -> None:
+def on_bind_jianshu_account_confirmed(user: User) -> None:
     jianshu_url: str = pin.jianshu_url
+
     try:
-        jianshu_name: str = bind_jianshu_account(uid, jianshu_url)
+        jianshu_name = user.bind_jianshu_account(jianshu_url)
     except UserURLIlliegalError:
         toast_error_and_return("链接为空或输入错误")
     except DuplicatedUserURLError:
@@ -273,31 +269,29 @@ def on_bind_jianshu_account_confirmed(uid: str) -> None:
         reload(delay=1)
 
 
-def on_copy_uid_button_clicked(uid: str) -> None:
-    copy_to_clipboard(uid)
+def on_copy_uid_button_clicked(user: User) -> None:
+    copy_to_clipboard(user.id)
     toast_success("复制成功")
 
 
 def personal_center() -> None:
     try:
-        uid = verify_token(get_token())
+        user = Token.from_token_value(get_token()).user
     except TokenNotExistError:
-        uid = require_login()
-        set_token(create_token(uid))
-
-    user_data = get_user_data_from_uid(uid)
+        user = require_login()
+        token = user.generate_token()
+        set_token(token.value)
 
     put_markdown("# 个人中心")
 
     put_markdown("## 基本信息")
-    old_user_name: str = user_data["user_name"]
     put_row(
         [
-            put_markdown(f"昵称：{user_data['user_name']}"),
+            put_markdown(f"昵称：{user.name}"),
             None,
             put_button(
                 "修改",
-                onclick=lambda: on_change_user_name_button_clicked(uid, old_user_name),
+                onclick=lambda: on_change_user_name_button_clicked(user),
                 color="success",
                 small=True,
             ),
@@ -309,40 +303,40 @@ def personal_center() -> None:
             put_markdown(
                 "简书账号："
                 + (
-                    f"已绑定（{user_data['jianshu']['name']}）"
-                    if user_data["jianshu"]["url"]
+                    f"已绑定（{user.jianshu_name}）"
+                    if user.is_jianshu_binded
                     else "未绑定"
                 )
             ),
             None,
             put_button(
                 "绑定简书账号",
-                onclick=lambda: on_bind_jianshu_account_button_clicked(uid),
+                onclick=lambda: on_bind_jianshu_account_button_clicked(user),
                 color="success",
                 small=True,
             )
-            if not user_data["jianshu"]["url"]
+            if not user.is_jianshu_binded
             else put_markdown(""),
         ],
         size="auto 10px 1fr",
     )
     put_row(
         [
-            put_markdown(f"UID：{uid}"),
+            put_markdown(f"UID：{user.id}"),
             None,
             put_button(
                 "复制",
-                onclick=lambda: on_copy_uid_button_clicked(uid),
+                onclick=lambda: on_copy_uid_button_clicked(user),
                 color="success",
                 small=True,
             ),
         ],
         size="auto 10px 1fr",
     )
-    put_markdown(f"注册时间：{user_data['signup_time']}")
+    put_markdown(f"注册时间：{user.signup_time}")
     put_button(
         "修改密码",
-        onclick=lambda: on_change_password_button_clicked(uid),
+        onclick=lambda: on_change_password_button_clicked(user),
         color="success",
         small=True,
     )
