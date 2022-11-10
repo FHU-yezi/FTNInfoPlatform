@@ -19,37 +19,6 @@ from utils.time_helper import (
 )
 
 
-def get_active_orders_list(
-    order_type: Literal["buy", "sell", "all"], limit: int
-) -> List[Dict]:
-    """获取交易中的订单列表
-
-    Args:
-        order_type (Literal["buy", "sell", "all"]): 订单类型
-        limit (int): 返回数量限制
-
-    Returns:
-        List[Dict]: 订单列表
-    """
-    filter: Dict[str, Any] = {"status": 0}  # 交易中
-    if order_type in {"buy", "sell"}:
-        filter["order.type"] = order_type
-
-    return (
-        order_data_db.find(filter)
-        # 根据交易单类型应用对应排序规则
-        # 买单价格升序，卖单价格降序
-        .sort(
-            [
-                (
-                    "order.price.unit",
-                    -1 if order_type == "buy" else 1,
-                )
-            ]
-        ).limit(limit)
-    )
-
-
 class Order:
     attr_db_key_mapping: Dict[str, str] = {
         "id": "_id",
@@ -337,3 +306,35 @@ class Order:
         self.status = 3  # 已过期
         self.expire_time = get_now_without_mileseconds()
         self.sync()
+
+
+def get_active_orders_list(
+    order_type: Literal["buy", "sell", "all"], limit: int
+) -> List[Order]:
+    """获取交易中的订单列表
+
+    Args:
+        order_type (Literal["buy", "sell", "all"]): 订单类型
+        limit (int): 返回数量限制
+
+    Returns:
+        List[Dict]: 订单列表
+    """
+    filter: Dict[str, Any] = {"status": 0}  # 交易中
+    if order_type in {"buy", "sell"}:
+        filter["order.type"] = order_type
+
+    db_data_list: List[Dict] = (
+        order_data_db.find(filter)
+        # 根据交易单类型应用对应排序规则
+        # 买单价格升序，卖单价格降序
+        .sort(
+            [
+                (
+                    "order.price.unit",
+                    -1 if order_type == "buy" else 1,
+                )
+            ]
+        ).limit(limit)
+    )
+    return [Order.from_db_data(item) for item in db_data_list]
