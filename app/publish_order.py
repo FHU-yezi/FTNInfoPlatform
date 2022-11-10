@@ -1,11 +1,12 @@
 from typing import Literal
 
-from data.order import create_order
-from data.overview import get_24h_traded_FTN_avg_price
-from data.token import create_token, verify_token
-from data.user import get_jianshu_bind_url
 from pywebio.output import popup, put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
+
+from data.order_new import Order
+from data.overview import get_24h_traded_FTN_avg_price
+from data.token_new import Token
+from data.user_new import User
 from utils.exceptions import (
     AmountIlliegalError,
     DuplicatedOrderError,
@@ -56,13 +57,13 @@ def on_order_type_changed(_) -> None:
     pin_update("unit_price", help_text=help_text)
 
 
-def on_publish_button_clicked(uid: str) -> None:
+def on_publish_button_clicked(user: User) -> None:
     order_type: Literal["buy", "sell"] = "buy" if pin.order_type == "买单" else "sell"
     unit_price: float = pin.unit_price
     total_amount: int = pin.total_amount
 
     try:
-        create_order(order_type, unit_price, total_amount, uid)
+        Order.create(order_type, unit_price, total_amount, user)
     except PriceIlliegalError:
         toast_error_and_return("单价为空或不在正常范围内")
     except AmountIlliegalError:
@@ -99,20 +100,20 @@ def on_publish_button_clicked(uid: str) -> None:
 
 def publish_order() -> None:
     try:
-        uid = verify_token(get_token())
+        user = Token.from_token_value(get_token()).user
     except TokenNotExistError:
-        uid = require_login()
-        set_token(create_token(uid))
+        user = require_login()
+        token = user.generate_token()
+        set_token(token.value)
 
     # 如果用户没有绑定简书账号，阻止其发布交易单
-    jianshu_bind_url: str = get_jianshu_bind_url(uid)
-    if not jianshu_bind_url:
+    if not user.is_jianshu_binded:
         with popup("绑定简书账号", size="large", closable=False):  # 不可关闭
             put_markdown(
                 f"""
                 为避免虚假挂单干扰平台秩序，请在发布意向单前绑定简书账号。
 
-                {link("去绑定>>>", get_url_to_module("personal_center", ), new_window=True)}
+                {link("去绑定>>>", get_url_to_module("personal_center"), new_window=True)}
                 """,
                 sanitize=False,
             )
@@ -158,18 +159,18 @@ def publish_order() -> None:
                 },
             ],
             onclick=[
-                lambda: on_publish_button_clicked(uid),
+                lambda: on_publish_button_clicked(user),
                 close_page,
             ],
         )
 
     pin_on_change(
         "price",
-        onchange=lambda _: on_unit_price_or_total_amount_input_changed(uid),
+        onchange=lambda _: on_unit_price_or_total_amount_input_changed(user),
     )
     pin_on_change(
         "total_amount",
-        onchange=lambda _: on_unit_price_or_total_amount_input_changed(uid),
+        onchange=lambda _: on_unit_price_or_total_amount_input_changed(user),
     )
     pin_on_change(
         "order_type",
