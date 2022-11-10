@@ -3,7 +3,7 @@ from queue import Queue
 from pywebio.output import close_popup, popup, put_buttons
 from pywebio.pin import pin, put_input
 
-from data.user import User, log_in
+from data.user import User
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     PasswordIlliegalError,
@@ -64,7 +64,7 @@ def on_login_button_clicked(uid_container: Queue) -> None:
     password: str = pin.password
 
     try:
-        uid = log_in(user_name, password)
+        uid = User.login(user_name, password)
     except UsernameIlliegalError:
         toast_warn_and_return("请输入用户名")
     except PasswordIlliegalError:
