@@ -370,7 +370,7 @@ class User:
         # 过期用户的所有 Token
         self.expire_all_tokens()
 
-    def bind_jianshu_account(self, jianshu_url: str) -> None:
+    def bind_jianshu_account(self, jianshu_url: str) -> str:
         if not jianshu_url:
             raise UserURLIlliegalError("用户个人主页 URL 不能为空")
 
@@ -388,6 +388,8 @@ class User:
         self.jianshu_url = jianshu_url
         self.jianshu_name = jianshu_name
         self.sync()
+
+        return jianshu_name
 
     def generate_token(self):
         from data.token_new import Token
