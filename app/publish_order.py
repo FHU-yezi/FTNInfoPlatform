@@ -3,10 +3,10 @@ from typing import Literal
 from pywebio.output import popup, put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input, put_select
 
-from data.order_new import Order
+from data.order import Order
 from data.overview import get_24h_traded_FTN_avg_price
-from data.token_new import Token
-from data.user_new import User
+from data.token import Token
+from data.user import User
 from utils.exceptions import (
     AmountIlliegalError,
     DuplicatedOrderError,

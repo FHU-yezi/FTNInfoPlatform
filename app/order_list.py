@@ -1,7 +1,7 @@
 from pywebio.output import put_markdown, put_tabs, put_warning
 
-from data.order_new import get_active_orders_list
-from data.token_new import Token
+from data.order import get_active_orders_list
+from data.token import Token
 from utils.exceptions import TokenNotExistError
 from utils.page import get_token
 from widgets.order import put_order_item

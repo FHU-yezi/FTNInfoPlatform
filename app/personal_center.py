@@ -9,8 +9,8 @@ from pywebio.output import (
 )
 from pywebio.pin import pin, put_input
 
-from data.token_new import Token
-from data.user_new import User
+from data.token import Token
+from data.user import User
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,

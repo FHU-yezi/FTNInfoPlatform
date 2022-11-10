@@ -2,8 +2,8 @@ from typing import Optional
 
 from pywebio.output import put_collapse, put_markdown, put_row
 
-from data.order_new import Order
-from data.user_new import User
+from data.order import Order
+from data.user import User
 from utils.html import link
 from utils.page import is_Android
 from utils.url_scheme import user_URL_to_URL_scheme

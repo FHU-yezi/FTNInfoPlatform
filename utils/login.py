@@ -1,15 +1,9 @@
 from queue import Queue
 
-from data.user import log_in
 from pywebio.output import close_popup, popup, put_buttons
 from pywebio.pin import pin, put_input
-from data.user_new import User
-from widgets.toast import (
-    toast_error_and_return,
-    toast_success,
-    toast_warn_and_return,
-)
 
+from data.user import User, log_in
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     PasswordIlliegalError,
@@ -17,6 +11,11 @@ from utils.exceptions import (
     UsernameOrPasswordWrongError,
 )
 from utils.page import get_url_to_module, jump_to
+from widgets.toast import (
+    toast_error_and_return,
+    toast_success,
+    toast_warn_and_return,
+)
 
 
 def require_login() -> User:

@@ -1,7 +1,7 @@
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, put_input
 
-from data.user_new import User
+from data.user import User
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,

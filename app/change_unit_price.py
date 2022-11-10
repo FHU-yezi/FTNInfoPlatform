@@ -1,9 +1,9 @@
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
 
-from data.order_new import Order
+from data.order import Order
 from data.overview import get_24h_traded_FTN_avg_price
-from data.token_new import Token
+from data.token import Token
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     OrderIDNotExistError,

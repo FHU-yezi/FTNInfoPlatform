@@ -7,8 +7,8 @@ from pywebio.output import (
 )
 from pywebio.pin import pin, pin_on_change, pin_update, put_input
 
-from data.order_new import Order
-from data.token_new import Token
+from data.order import Order
+from data.token import Token
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     AmountIlliegalError,

@@ -1,5 +1,3 @@
-from data.order_new import Order
-from data.token_new import Token
 from pywebio.output import (
     close_popup,
     popup,
@@ -8,6 +6,9 @@ from pywebio.output import (
     put_tabs,
     put_warning,
 )
+
+from data.order import Order
+from data.token import Token
 from utils.exceptions import TokenNotExistError
 from utils.html import link
 from utils.login import require_login
