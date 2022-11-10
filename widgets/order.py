@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pywebio.output import put_collapse, put_markdown, put_row
 
 from data.order_new import Order
@@ -9,7 +11,9 @@ from widgets.badge import put_badge
 from widgets.progress_bar import put_progress_bar
 
 
-def put_order_item(order: Order, current_user: User):
+def put_order_item(order: Order, current_user: Optional[User] = None):
+    # 受限于调用者，不能保证获取到当前用户对象
+    # 如无法获取，传入默认值 None，使“我的”比较横为假
     order_user: User = order.user
 
     return put_collapse(
