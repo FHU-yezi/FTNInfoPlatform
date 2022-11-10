@@ -79,7 +79,7 @@ def change_unit_price() -> None:
         toast_error_and_return("请求参数错误")
 
     try:
-        order_id = Order.from_id(order_id)
+        order = Order.from_id(order_id)
     except OrderIDNotExistError:
         toast_error_and_return("请求参数错误")
 
@@ -90,49 +90,49 @@ def change_unit_price() -> None:
         token = user.generate_token()
         set_token(token.value)
 
-    if order_id.user != user:
+    if order.user != user:
         toast_error_and_return("您无权修改该意向单")
 
     put_markdown("# 修改意向单价格")
     put_markdown(
         f"""
-        发布时间：{order_id.publish_time}
-        意向单类型：{"买单" if order_id.type == "buy" else "卖单"}
+        发布时间：{order.publish_time}
+        意向单类型：{"买单" if order.type == "buy" else "卖单"}
         """
     )
     put_input(
         "unit_price",
         "float",
         label="单价",
-        value=order_id.unit_price,
-        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order_id.type, missing='default')}",
+        value=order.unit_price,
+        help_text=f"市场参考价：{get_24h_traded_FTN_avg_price(order.type, missing='default')}",
     )
     put_input(
         "total_amount",
         "number",
         label="总量",
-        value=order_id.total_amount,
+        value=order.total_amount,
         readonly=True,
     )
     put_input(
         "traded_amount",
         "number",
         label="已交易",
-        value=order_id.traded_amount,
+        value=order.traded_amount,
         readonly=True,
     )
     put_input(
         "remaining_amount",
         "number",
         label="剩余可交易",
-        value=order_id.remaining_amount,
+        value=order.remaining_amount,
         readonly=True,
     )
     put_input(
         "total_price",
         "number",
         label="总价",
-        value=order_id.total_price,
+        value=order.total_price,
         readonly=True,
     )
     with use_scope("buttons", clear=True):
@@ -149,7 +149,7 @@ def change_unit_price() -> None:
                 },
             ],
             onclick=[
-                lambda: on_change_button_clicked(order_id),
+                lambda: on_change_button_clicked(order),
                 close_page,
             ],
         )
@@ -160,5 +160,5 @@ def change_unit_price() -> None:
     )
     bind_enter_key_callback(
         "unit_price",
-        on_press=lambda _: on_change_button_clicked(order_id),
+        on_press=lambda _: on_change_button_clicked(order),
     )
