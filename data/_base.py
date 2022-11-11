@@ -13,9 +13,8 @@ class DataModel:
     db_key_attr_mapping = get_reversed_dict(attr_db_key_mapping)
 
     def __init__(self) -> None:
-        # 避免静态检查报错，继承后不会运行
-        self.id: str = self.id if not hasattr(self, "id") else ""
-
+        # 避免静态检查报错
+        self.id: str = self.id
         # 数据库对象别名
         self.db = self.__class__.db
 
