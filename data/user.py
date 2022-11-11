@@ -63,7 +63,6 @@ class User(DataModel):
     db = user_data_db
     attr_db_key_mapping: Dict[str, str] = {
         "id": "_id",
-        # TODO: 去除数据库中多余的 signin_time 字段
         "signup_time": "signup_time",
         "last_active_time": "last_active_time",
         "name": "user_name",
