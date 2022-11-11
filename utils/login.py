@@ -55,8 +55,7 @@ def require_login() -> User:
     )
 
     # 阻塞等待结果
-    uid = uid_container.get()
-    return User.from_id(uid)
+    return uid_container.get()
 
 
 def on_login_button_clicked(uid_container: Queue) -> None:
@@ -64,7 +63,7 @@ def on_login_button_clicked(uid_container: Queue) -> None:
     password: str = pin.password
 
     try:
-        uid = User.login(user_name, password)
+        user = User.login(user_name, password)
     except UsernameIlliegalError:
         toast_warn_and_return("请输入用户名")
     except PasswordIlliegalError:
@@ -74,7 +73,7 @@ def on_login_button_clicked(uid_container: Queue) -> None:
     else:
         toast_success("登录成功")
         close_popup()
-        uid_container.put(uid)
+        uid_container.put(user)
 
 
 def on_signup_button_clicked() -> None:
