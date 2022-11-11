@@ -76,8 +76,7 @@ class Order(DataModel):
         self.user_id = user_id
         self.user_name = user_name
 
-        # 脏属性列表必须在其它属性设置后再被创建
-        self._dirty: List[str] = []
+        super().__init__()
 
     @classmethod
     def from_id(cls, id: str) -> "Order":

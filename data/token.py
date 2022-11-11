@@ -45,8 +45,7 @@ class Token(DataModel):
         self.user_id = user_id
         self.value = value
 
-        # 脏属性列表必须在其它属性设置后再被创建
-        self._dirty: List[str] = []
+        super().__init__()
 
     @property
     def is_expired(self) -> bool:
