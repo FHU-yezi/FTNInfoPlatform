@@ -108,12 +108,12 @@ class User(DataModel):
 
     @property
     def buy_order(self):
-        from data.order import Order
+        from data.order import Order, OrderStatus
         from utils.db import order_data_db
 
         db_data = order_data_db.find_one(
             {
-                "status": 0,  # 交易中
+                "status": OrderStatus.TREADING,
                 "order.type": "buy",
                 "user.id": self.id,
             },
@@ -123,12 +123,12 @@ class User(DataModel):
 
     @property
     def sell_order(self):
-        from data.order import Order
+        from data.order import Order, OrderStatus
         from utils.db import order_data_db
 
         db_data = order_data_db.find_one(
             {
-                "status": 0,  # 交易中
+                "status": OrderStatus.TREADING,
                 "order.type": "sell",
                 "user.id": self.id,
             },
@@ -137,11 +137,12 @@ class User(DataModel):
             return Order.from_db_data(db_data)
 
     def finished_orders(self, order_type: Literal["buy", "sell"], limit: int) -> List:
+        from data.order import OrderStatus
         from utils.db import order_data_db
 
         data_list: List[Dict] = order_data_db.find(
             {
-                "status": 1,  # 已完成
+                "status": OrderStatus.FINISHED,
                 "order.type": order_type,
                 "user.id": self.id,
             }

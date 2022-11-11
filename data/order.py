@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import IntEnum
 from typing import Any, Dict, List, Literal
 
 from bson import ObjectId
@@ -18,6 +19,14 @@ from utils.time_helper import (
     get_nearest_expire_time,
     get_now_without_mileseconds,
 )
+
+
+class OrderStatus(IntEnum):
+    TREADING = 0
+    FINISHED = 1
+    DELETED = 2
+    EXPIRED = 3
+    BANNED = 4
 
 
 class Order(DataModel):
@@ -145,7 +154,7 @@ class Order(DataModel):
                 ),
                 "finish_time": None,
                 "delete_time": None,
-                "status": 0,
+                "status": OrderStatus.TREADING,
                 "order": {
                     "type": order_type,
                     "price": {
@@ -211,7 +220,7 @@ class Order(DataModel):
         )
         # 如果余量为 0，将交易单状态置为已完成
         if new_remaining_amount == 0:
-            self.status = 1  # 已完成
+            self.status = OrderStatus.FINISHED
             self.finish_time = get_now_without_mileseconds()
 
         self.sync()
@@ -222,10 +231,10 @@ class Order(DataModel):
         return self.change_traded_amount(self.total_amount)
 
     def expire(self) -> None:
-        if self.status != 0:
+        if self.status != OrderStatus.TREADING:
             raise OrderStatusError("不能对状态不为交易中的交易单进行过期操作")
 
-        self.status = 3  # 已过期
+        self.status = OrderStatus.EXPIRED
         self.expire_time = get_now_without_mileseconds()
         self.sync()
 
@@ -242,7 +251,9 @@ def get_active_orders_list(
     Returns:
         List[Dict]: 订单列表
     """
-    filter: Dict[str, Any] = {"status": 0}  # 交易中
+    filter: Dict[str, Any] = {
+        "status": OrderStatus.TREADING,
+    }
     if order_type in {"buy", "sell"}:
         filter["order.type"] = order_type
 
