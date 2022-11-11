@@ -1,11 +1,12 @@
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional, Sequence
+from typing import Dict, List, Literal, Optional
 
 from bson import ObjectId
 from httpx import get as httpx_get
 
+from data._base import DataModel
 from utils.db import user_data_db
-from utils.dict_helper import flatten_dict, get_reversed_dict
+from utils.dict_helper import get_reversed_dict
 from utils.exceptions import (
     DuplicatedUsernameError,
     DuplicatedUserURLError,
@@ -58,7 +59,8 @@ def get_user_jianshu_name(user_url: str) -> str:
         raise UserURLIlliegalError("获取数据时出现异常")
 
 
-class User:
+class User(DataModel):
+    db = user_data_db
     attr_db_key_mapping: Dict[str, str] = {
         "id": "_id",
         # TODO: 去除数据库中多余的 signin_time 字段
@@ -95,100 +97,14 @@ class User:
         self.jianshu_url = jianshu_url
         self.jianshu_name = jianshu_name
 
-        # 脏属性列表必须在其它属性设置后再被创建
-        self._dirty: List[str] = []
-
-    @property
-    def object_id(self) -> ObjectId:
-        return ObjectId(self.id)
-
-    def is_dirty(self, attr_name: str) -> bool:
-        if not hasattr(self, attr_name):
-            raise AttributeError(f"属性 {attr_name} 不存在")
-        return attr_name in self._dirty
+        super().__init__()
 
     @classmethod
-    def from_id(cls, id: str) -> "User":
-        db_data = user_data_db.find_one({"_id": ObjectId(id)})
+    def from_id(cls, id: str):
+        db_data = cls.db.find_one({"_id": ObjectId(id)})
         if not db_data:
             raise UIDNotExistError
         return cls.from_db_data(db_data)
-
-    @classmethod
-    def from_db_data(cls, db_data: Dict) -> "User":
-        # 展平数据库查询结果
-        db_data = flatten_dict(db_data)
-        db_data["_id"] = str(db_data["_id"])
-
-        data_to_init_func: Dict[str, Any] = {}
-        for k, v in db_data.items():
-            attr_name = cls.db_key_attr_mapping.get(k)
-            if not attr_name:  # 数据库中存在，但模型中未定义的字段
-                continue  # 跳过
-            data_to_init_func[attr_name] = v
-
-        # 调用 __init__ 初始化对象
-        return cls(**data_to_init_func)
-
-    def __eq__(self, __o: Any) -> bool:
-        if self.__class__ != __o.__class__:
-            return False
-
-        return self.id == __o.id
-
-    def __setattr__(self, __name: str, __value: Any) -> None:
-        # 由于脏属性列表在 __init__ 函数的末尾，当该列表存在时
-        # 证明 __init__ 过程已完成
-        init_finished: bool = hasattr(self, "_dirty")
-
-        # __init__ 已完成，禁止设置模型中未定义的属性
-        if init_finished and not hasattr(self, __name):
-            raise Exception(f"不能设置模型中未定义的属性 {__name}")
-
-        # 如果脏属性列表存在，且该属性未被标脏，则将该属性标脏
-        if init_finished and __name not in self._dirty:
-            self._dirty.append(__name)
-        # 设置属性值
-        super().__setattr__(__name, __value)
-
-    def sync(self) -> None:
-        data_to_update = {}
-        # 遍历脏数据列表
-        for attr in self._dirty:
-            db_key: str = self.__class__.attr_db_key_mapping[attr]
-            data_to_update[db_key] = getattr(self, attr)
-
-        # 更新数据库中的信息
-        user_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
-        # 清空脏数据列表
-        self._dirty.clear()
-
-    def sync_only(self, attr_list: Sequence[str]) -> None:
-        data_to_update = {}
-        for attr in attr_list:
-            if attr not in self._dirty:
-                raise Exception(f"{attr} 未被标记为脏数据")
-            db_key: str = self.__class__.attr_db_key_mapping[attr]
-            data_to_update[db_key] = getattr(self, attr)
-
-            # 从脏数据列表中删除对应属性名
-            self._dirty.remove(attr)
-
-        # 更新数据库中的信息
-        user_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
-
-    def sync_all(self) -> None:
-        data_to_update = {}
-        for attr, db_key in self.__class__.attr_db_key_mapping.items():
-            data_to_update[db_key] = getattr(self, attr)
-
-        # 更新数据库中的信息
-        user_data_db.update_one({"_id": self.object_id}, {"$set": data_to_update})
-        # 清空脏数据列表
-        self._dirty.clear()
-
-    def delete(self) -> None:
-        user_data_db.delete_one({"_id": self.object_id})
 
     @property
     def buy_order(self):
@@ -297,7 +213,7 @@ class User:
 
         now_time = get_now_without_mileseconds()
         encrypted_password: str = encrypt_password(password)
-        insert_result = user_data_db.insert_one(
+        insert_result = cls.db.insert_one(
             {
                 "signup_time": now_time,
                 "last_active_time": now_time,
@@ -324,7 +240,7 @@ class User:
         if not password:
             raise PasswordIlliegalError("密码不能为空")
 
-        db_data = user_data_db.find_one(
+        db_data = cls.db.find_one(
             {"user_name": user_name},
         )
 
