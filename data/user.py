@@ -197,6 +197,7 @@ class User:
 
         db_data = order_data_db.find_one(
             {
+                "status": 0,  # 交易中
                 "order.type": "buy",
                 "user.id": self.id,
             },
@@ -211,6 +212,7 @@ class User:
 
         db_data = order_data_db.find_one(
             {
+                "status": 0,  # 交易中
                 "order.type": "sell",
                 "user.id": self.id,
             },
