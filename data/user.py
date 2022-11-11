@@ -193,11 +193,12 @@ class User:
     @property
     def buy_order(self):
         from data.order import Order
+        from utils.db import order_data_db
 
-        db_data = user_data_db.find_one(
+        db_data = order_data_db.find_one(
             {
                 "order.type": "buy",
-                "user.id": self.object_id,
+                "user.id": self.id,
             },
         )
         if db_data:
@@ -206,11 +207,12 @@ class User:
     @property
     def sell_order(self):
         from data.order import Order
+        from utils.db import order_data_db
 
-        db_data = user_data_db.find_one(
+        db_data = order_data_db.find_one(
             {
                 "order.type": "sell",
-                "user.id": self.object_id,
+                "user.id": self.id,
             },
         )
         if db_data:
