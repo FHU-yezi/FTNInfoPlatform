@@ -328,7 +328,7 @@ def get_active_orders_list(
     if order_type in {"buy", "sell"}:
         filter["order.type"] = order_type
 
-    db_data_list: List[Dict] = [
+    db_data_list: List[Dict] = (
         order_data_db.find(filter)
         # 根据交易单类型应用对应排序规则
         # 买单价格升序，卖单价格降序
@@ -340,5 +340,5 @@ def get_active_orders_list(
                 )
             ]
         ).limit(limit)
-    ]
+    )
     return [Order.from_db_data(item) for item in db_data_list]
