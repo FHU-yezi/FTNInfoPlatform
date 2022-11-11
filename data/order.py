@@ -1,8 +1,13 @@
+from datetime import datetime
+from enum import IntEnum
 from typing import Any, Dict, List, Literal
 
 from bson import ObjectId
+
+from data._base import DataModel
 from utils.config import config
 from utils.db import order_data_db
+from utils.dict_helper import get_reversed_dict
 from utils.exceptions import (
     AmountIlliegalError,
     DuplicatedOrderError,
@@ -15,306 +20,245 @@ from utils.time_helper import (
     get_now_without_mileseconds,
 )
 
-from data.trade import create_trade
-from data.user import get_user_data_from_uid
+
+class OrderStatus(IntEnum):
+    TREADING = 0
+    FINISHED = 1
+    DELETED = 2
+    EXPIRED = 3
+    BANNED = 4
 
 
-def is_order_id_exist(order_id: str) -> bool:
-    """检测意向单 ID 是否存在
+class Order(DataModel):
+    db = order_data_db
+    attr_db_key_mapping: Dict[str, str] = {
+        "id": "_id",
+        "status": "status",
+        "type": "order.type",
+        "publish_time": "publish_time",
+        "finish_time": "finish_time",
+        "delete_time": "delete_time",
+        "effective_hours": "effective_hours",
+        "expire_time": "expire_time",
+        "unit_price": "order.price.unit",
+        "total_price": "order.price.total",
+        "total_amount": "order.amount.total",
+        "traded_amount": "order.amount.traded",
+        "remaining_amount": "order.amount.remaining",
+        "user_id": "user.id",
+        "user_name": "user.name",
+    }
+    db_key_attr_mapping = get_reversed_dict(attr_db_key_mapping)
 
-    Args:
-        order_id (str): 订单 ID
+    def __init__(
+        self,
+        id: str,
+        status: int,
+        type: str,
+        publish_time: datetime,
+        finish_time: datetime,
+        delete_time: datetime,
+        effective_hours: int,
+        expire_time: datetime,
+        unit_price: float,
+        total_price: float,
+        total_amount: int,
+        traded_amount: int,
+        remaining_amount: int,
+        user_id: str,
+        user_name: str,
+    ) -> None:
+        self.id = id
+        self.status = status
+        # 此处覆盖了内置函数 type，该作用域内不会使用到这个函数
+        self.type = type
+        self.publish_time = publish_time
+        self.finish_time = finish_time
+        self.delete_time = delete_time
+        self.effective_hours = effective_hours
+        self.expire_time = expire_time
+        self.unit_price = unit_price
+        self.total_price = total_price
+        self.total_amount = total_amount
+        self.traded_amount = traded_amount
+        self.remaining_amount = remaining_amount
+        self.user_id = user_id
+        self.user_name = user_name
 
-    Returns:
-        bool: 是否存在
-    """
-    return order_data_db.count_documents({"_id": ObjectId(order_id)}) != 0
+        super().__init__()
 
+    @classmethod
+    def from_id(cls, id: str) -> "Order":
+        db_data = cls.db.find_one({"_id": ObjectId(id)})
+        if not db_data:
+            raise OrderIDNotExistError
+        return cls.from_db_data(db_data)
 
-def is_uid_order_type_exist(uid: str, order_type: Literal["buy", "sell"]) -> bool:
-    """检测某用户是否已发布过该种交易单
+    @property
+    def user(self):
+        from data.user import User
 
-    Args:
-        uid (str): UID
-        order_type (Literal["buy", "sell"]): 订单类型
+        return User.from_id(self.user_id)
 
-    Returns:
-        bool: 是否已发布过该种交易单
-    """
-    return (
-        order_data_db.count_documents(
+    @property
+    def trade_list(self):
+        from data.trade import Trade
+        from utils.db import trade_data_db
+
+        db_data_list: List[Dict] = trade_data_db.find(
+            {"order.id": self.id},
+        )
+        return [Trade.from_db_data(item) for item in db_data_list]
+
+    @property
+    def is_expired(self) -> bool:
+        return self.expire_time < datetime.now()
+
+    @classmethod
+    def create(
+        cls,
+        order_type: Literal["buy", "sell"],
+        unit_price: float,
+        total_amount: int,
+        user_obj,
+    ) -> "Order":
+        if order_type not in {"buy", "sell"}:
+            raise TypeError("参数 order_type 必须为 buy 或 sell")
+        if unit_price is None:
+            raise PriceIlliegalError("单价不能为空")
+        if total_amount is None:
+            raise AmountIlliegalError("总量不能为空")
+
+        if not 0.05 < unit_price <= 0.2:
+            raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
+        if not 0 < total_amount <= 10**8:
+            raise AmountIlliegalError("总量必须在 0 - 10**8 之间")
+        if round(unit_price, 3) != unit_price:  # 大于三位小数
+            raise PriceIlliegalError("价格只支持三位小数")
+
+        # 该用户已经有同种交易单
+        # user_obj 的 buy_order 和 sell_order 属性在没有交易单时返回 None
+        if (order_type == "buy" and user_obj.buy_order) or (
+            order_type == "sell" and user_obj.sell_order
+        ):
+            raise DuplicatedOrderError("该用户已存在该类型交易单")
+
+        total_price = round(unit_price * total_amount, 2)
+        now_time = get_now_without_mileseconds()
+        insert_result = cls.db.insert_one(
             {
-                "status": 0,  # 交易中
-                "order.type": order_type,
-                "user.id": uid,
+                "publish_time": now_time,
+                "effective_hours": config.default_order_effective_hours,
+                "expire_time": get_nearest_expire_time(
+                    now_time, config.default_order_effective_hours
+                ),
+                "finish_time": None,
+                "delete_time": None,
+                "status": OrderStatus.TREADING,
+                "order": {
+                    "type": order_type,
+                    "price": {
+                        "unit": unit_price,
+                        "total": total_price,
+                    },
+                    "amount": {
+                        "total": total_amount,
+                        "traded": 0,
+                        "remaining": total_amount,
+                    },
+                },
+                "user": {
+                    "id": user_obj.id,
+                    "name": user_obj.name,
+                },
             }
         )
-    ) != 0
 
+        # 返回新创建的订单对象
+        return cls.from_id(insert_result.inserted_id)
 
-def get_order_data_from_order_id(order_id: str) -> Dict:
-    """通过订单 ID 获取订单信息
+    def change_unit_price(self, new_unit_price: float) -> None:
+        if new_unit_price is None:
+            raise PriceIlliegalError("单价不能为空")
+        if not 0.05 < new_unit_price <= 0.2:
+            raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
+        if round(new_unit_price, 3) != new_unit_price:  # 大于三位小数
+            raise PriceIlliegalError("价格只支持三位小数")
 
-    Args:
-        order_id (str): 订单 ID
+        total_price: float = round(new_unit_price * self.total_amount, 2)
 
-    Raises:
-        OrderIDNotExistError: 订单不存在
+        self.unit_price = new_unit_price
+        self.total_price = total_price
+        self.sync()
 
-    Returns:
-        Dict: 订单信息
-    """
-    result: Dict = order_data_db.find_one({"_id": ObjectId(order_id)})
-    if not result:
-        raise OrderIDNotExistError("Order ID 不存在")
-    return result
+    def change_traded_amount(self, new_traded_amount: int) -> None:
+        if new_traded_amount is None:
+            raise AmountIlliegalError("已交易量不能为空")
+        if new_traded_amount < 0:
+            raise AmountIlliegalError("已交易量必须大于 0")
 
+        origin_traded_amount = self.traded_amount
+        trade_amount = new_traded_amount - origin_traded_amount
+        if new_traded_amount > self.total_amount:
+            raise AmountIlliegalError("已交易量不能大于总量")
+        if trade_amount <= 0:
+            raise AmountIlliegalError("不能将已交易量改为低于当前值的数值")
 
-def create_order(
-    order_type: Literal["buy", "sell"], unit_price: float, total_amount: int, uid: str
-) -> None:
-    """创建订单
+        new_remaining_amount: int = self.total_amount - new_traded_amount
 
-    Args:
-        order_type (Literal["buy", "sell"]): 订单类型
-        unit_price (float): 单价
-        total_amount (int): 总量
-        uid (str): UID
+        # 更新订单状态
+        self.traded_amount = new_traded_amount
+        self.remaining_amount = new_remaining_amount
+        # 创建交易
+        from data.trade import Trade
 
-    Raises:
-        TypeError: 参数 order_type 错误（内部错误）
-        PriceIlliegalError: 价格为空或不在正常范围内
-        AmountIlliegalError: 总量为空或不在正常范围内
-        DuplicatedOrderError: 该用户已存在对应类型交易单，不允许重复创建
-    """
-    if order_type not in {"buy", "sell"}:
-        raise TypeError("参数 order_type 必须为 buy 或 sell")
-    if unit_price is None:
-        raise PriceIlliegalError("单价不能为空")
-    if total_amount is None:
-        raise AmountIlliegalError("总量不能为空")
+        Trade.create(
+            trade_type=self.type,
+            unit_price=self.unit_price,
+            trade_amount=trade_amount,
+            order_obj=self,
+        )
+        # 如果余量为 0，将交易单状态置为已完成
+        if new_remaining_amount == 0:
+            self.status = OrderStatus.FINISHED
+            self.finish_time = get_now_without_mileseconds()
 
-    if not 0.05 < unit_price <= 0.2:
-        raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
-    if not 0 < total_amount <= 10**8:
-        raise AmountIlliegalError("总量必须在 0 - 10**8 之间")
-    if round(unit_price, 3) != unit_price:  # 大于三位小数
-        raise PriceIlliegalError("价格只支持三位小数")
+        self.sync()
 
-    if is_uid_order_type_exist(uid, order_type):
-        raise DuplicatedOrderError("该用户已存在该类型交易单")
+    def set_all_traded(self) -> None:
+        # 将已交易数量设为订单总量，即全部简书贝都已被交易
+        # 之后交由 `change_traded_amount` 函数处理
+        return self.change_traded_amount(self.total_amount)
 
-    total_price = round(unit_price * total_amount, 2)
-    # 此处如果 UID 不存在，会抛出异常
-    # 但调用方有责任保证 UID 存在，这是一个内部异常，因此不做捕获处理
-    user_data = get_user_data_from_uid(uid)
-    now_time = get_now_without_mileseconds()
-    order_data_db.insert_one(
-        {
-            "publish_time": now_time,
-            "effective_hours": config.default_order_effective_hours,
-            "expire_time": get_nearest_expire_time(
-                now_time, config.default_order_effective_hours
-            ),
-            "finish_time": None,
-            "delete_time": None,
-            "status": 0,
-            "order": {
-                "type": order_type,
-                "price": {
-                    "unit": unit_price,
-                    "total": total_price,
-                },
-                "amount": {
-                    "total": total_amount,
-                    "traded": 0,
-                    "remaining": total_amount,
-                },
-            },
-            "user": {
-                "id": uid,
-                "name": user_data["user_name"],
-            },
-        }
-    )
+    def expire(self) -> None:
+        if self.status != OrderStatus.TREADING:
+            raise OrderStatusError("不能对状态不为交易中的交易单进行过期操作")
 
-
-def change_order_unit_price(order_id: str, unit_price: float) -> None:
-    """更改订单单价
-
-    Args:
-        order_id (str): 订单 ID
-        unit_price (float): 新单价
-
-    Raises:
-        PriceIlliegalError: 单价为空或不在正常范围内
-    """
-    if unit_price is None:
-        raise PriceIlliegalError("单价不能为空")
-    if not 0.05 < unit_price <= 0.2:
-        raise PriceIlliegalError("单价必须在 0.05 - 0.2 之间")
-    if round(unit_price, 3) != unit_price:  # 大于三位小数
-        raise PriceIlliegalError("价格只支持三位小数")
-
-    # 此处如果 Order ID 不存在，会抛出异常
-    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
-    order_data = get_order_data_from_order_id(order_id)
-    total_price: float = round(unit_price * order_data["order"]["amount"]["total"], 2)
-
-    data_to_update: Dict = {
-        "order.price": {
-            "unit": unit_price,
-            "total": total_price,
-        },
-    }
-    order_data_db.update_one(
-        {"_id": ObjectId(order_id)},
-        {"$set": data_to_update},
-    )
-
-
-def change_order_traded_amount(order_id: str, new_traded_amount: int) -> None:
-    """更改订单已交易数量
-
-    该函数会阻止用户将已交易数量更改为比当前值更低的数值
-
-    Args:
-        order_id (str): 订单 ID
-        traded_amount (int): 已交易数量
-
-    Raises:
-        AmountIlliegalError: 已交易量为空或不在正常范围内
-    """
-    if new_traded_amount is None:
-        raise AmountIlliegalError("已交易量不能为空")
-    if new_traded_amount < 0:
-        raise AmountIlliegalError("已交易量必须大于 0")
-
-    # 此处如果 Order ID 不存在，会抛出异常
-    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
-    order_data = get_order_data_from_order_id(order_id)
-    total_amount: int = order_data["order"]["amount"]["total"]
-    origin_traded_amount = order_data["order"]["amount"]["traded"]
-    trade_amount = new_traded_amount - origin_traded_amount
-    if new_traded_amount > total_amount:
-        raise AmountIlliegalError("已交易量不能大于总量")
-    if trade_amount <= 0:
-        raise AmountIlliegalError("不能将已交易量改为低于当前值的数值")
-
-    remaining_amount: int = total_amount - new_traded_amount
-    unit_price: float = order_data["order"]["price"]["unit"]
-    total_price: float = round(unit_price * total_amount, 2)
-    uid: str = order_data["user"]["id"]
-
-    data_to_update: Dict = {
-        "order.price": {
-            "unit": unit_price,
-            "total": total_price,
-        },
-        "order.amount": {
-            "total": total_amount,
-            "traded": new_traded_amount,
-            "remaining": remaining_amount,
-        },
-    }
-    # 创建交易
-    trade_type: Literal["buy", "sell"] = order_data["order"]["type"]
-    create_trade(
-        trade_type=trade_type,
-        unit_price=unit_price,
-        trade_amount=trade_amount,
-        order_id=order_id,
-        uid=uid,
-    )
-    # 如果余量为 0，将交易单状态置为已完成
-    if remaining_amount == 0:
-        data_to_update["status"] = 1  # 已完成
-        data_to_update["finish_time"] = get_now_without_mileseconds()
-    order_data_db.update_one(
-        {"_id": ObjectId(order_id)},
-        {"$set": data_to_update},
-    )
-
-
-def delete_order(order_id: str) -> None:
-    """删除订单
-
-    Args:
-        order_id (str): 订单 ID
-
-    Raises:
-        OrderStatusError: 订单不存在
-    """
-    # 此处如果 Order ID 不存在，会抛出异常
-    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
-    order_data = get_order_data_from_order_id(order_id)
-
-    if order_data["status"] != 0:
-        raise OrderStatusError("不能对状态不为交易中的交易单进行删除操作")
-
-    # 将交易单标记为已删除
-    data_to_update: Dict = {
-        "status": 2,  # 已删除
-        "delete_time": get_now_without_mileseconds(),
-    }
-    order_data_db.update_one(
-        {"_id": ObjectId(order_id)},
-        {"$set": data_to_update},
-    )
-
-
-def set_order_all_traded(order_id: str) -> None:
-    # 此处如果 Order ID 不存在，会抛出异常
-    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
-    order_data = get_order_data_from_order_id(order_id)
-
-    unit_price: float = order_data["order"]["price"]["unit"]
-    total_amount: int = order_data["order"]["amount"]["total"]
-    remaining_amount: int = order_data["order"]["amount"]["remaining"]
-    uid: str = order_data["user"]["id"]
-    data_to_update: Dict = {
-        "status": 1,  # 已完成
-        "finish_time": get_now_without_mileseconds(),
-        "order.amount": {
-            "total": total_amount,
-            "traded": total_amount,
-            "remaining": 0,
-        },
-    }
-    # 创建交易
-    trade_type: Literal["buy", "sell"] = order_data["order"]["type"]
-    create_trade(
-        trade_type=trade_type,
-        unit_price=unit_price,
-        trade_amount=remaining_amount,
-        order_id=order_id,
-        uid=uid,
-    )
-    order_data_db.update_one(
-        {"_id": ObjectId(order_id)},
-        {"$set": data_to_update},
-    )
+        self.status = OrderStatus.EXPIRED
+        self.expire_time = get_now_without_mileseconds()
+        self.sync()
 
 
 def get_active_orders_list(
-    order_type: Literal["buy", "sell"], limit: int
-) -> List[Dict]:
+    order_type: Literal["buy", "sell", "all"], limit: int
+) -> List[Order]:
     """获取交易中的订单列表
 
     Args:
-        order_type (Literal["buy", "sell"]): 订单类型
+        order_type (Literal["buy", "sell", "all"]): 订单类型
         limit (int): 返回数量限制
 
     Returns:
         List[Dict]: 订单列表
     """
-    return (
-        order_data_db.find(
-            {
-                "status": 0,  # 交易中
-                "order.type": order_type,
-            }
-        )
+    filter: Dict[str, Any] = {
+        "status": OrderStatus.TREADING,
+    }
+    if order_type in {"buy", "sell"}:
+        filter["order.type"] = order_type
+
+    db_data_list: List[Dict] = (
+        order_data_db.find(filter)
         # 根据交易单类型应用对应排序规则
         # 买单价格升序，卖单价格降序
         .sort(
@@ -326,70 +270,4 @@ def get_active_orders_list(
             ]
         ).limit(limit)
     )
-
-
-def get_my_active_order(uid: str, order_type: Literal["buy", "sell"]) -> Dict:
-    """获取自己的交易中订单
-
-    Args:
-        uid (str): UID
-        order_type (Literal["buy", "sell"]): 订单类型
-
-    Returns:
-        Dict: 订单信息
-    """
-    return order_data_db.find_one(
-        {
-            "status": 0,  # 交易中
-            "order.type": order_type,
-            "user.id": uid,
-        }
-    )
-
-
-def get_my_finished_orders_list(
-    uid: str, order_type: Literal["buy", "sell"], limit: int
-) -> List[Dict]:
-    """获取自己的已完成订单
-
-    Args:
-        uid (str): UID
-        order_type (Literal["buy", "sell"]): 订单类型
-        limit (int): 返回数量限制
-
-    Returns:
-        List[Dict]: 订单信息
-    """
-    return order_data_db.find(
-        {
-            "status": 1,  # 已完成
-            "order.type": order_type,
-            "user.id": uid,
-        }
-    ).limit(limit)
-
-
-def set_order_expired(order_id: str) -> None:
-    # 此处如果 Order ID 不存在，会抛出异常
-    # 但调用方有责任保证 Order ID 存在，这是一个内部异常，因此不做捕获处理
-    order_data = get_order_data_from_order_id(order_id)
-    if order_data["status"] != 0:
-        raise OrderStatusError("不能对状态不为交易中的交易单进行过期操作")
-
-    data_to_update = {
-        "status": 3   # 已过期
-    }
-    order_data_db.update_one(
-        {"_id": ObjectId(order_id)},
-        {"$set": data_to_update},
-    )
-
-
-def get_all_trading_orders_list(order_type: Literal["buy", "sell", "all"]) -> List[Dict]:
-    filter: Dict[str, Any] = {
-        "status": 0  # 交易中
-    }
-    if order_type in {"buy", "sell"}:
-        filter["order.type"] = order_type
-
-    return order_data_db.find(filter)
+    return [Order.from_db_data(item) for item in db_data_list]

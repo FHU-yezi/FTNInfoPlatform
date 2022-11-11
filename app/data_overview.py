@@ -1,16 +1,17 @@
 import pyecharts.options as opts
-from widgets.trade import put_trade_item
+from pywebio.output import put_html, put_markdown, put_tabs
+
 from data.overview import (
     get_24h_traded_FTN_avg_price,
     get_finished_orders_count,
     get_in_trading_orders_count,
-    get_recent_trade_list,
     get_per_hour_trade_avg_price,
+    get_recent_trade_list,
     get_total_traded_amount,
     get_total_traded_price,
 )
-from pywebio.output import put_html, put_markdown, put_tabs
 from utils.chart import single_line_chart
+from widgets.trade import put_trade_item
 
 NAME: str = "数据概览"
 DESC: str = "查看价格走势、成交量等信息"

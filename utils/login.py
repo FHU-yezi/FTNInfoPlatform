@@ -1,14 +1,9 @@
 from queue import Queue
 
-from data.user import log_in
 from pywebio.output import close_popup, popup, put_buttons
 from pywebio.pin import pin, put_input
-from widgets.toast import (
-    toast_error_and_return,
-    toast_success,
-    toast_warn_and_return,
-)
 
+from data.user import User
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     PasswordIlliegalError,
@@ -16,9 +11,14 @@ from utils.exceptions import (
     UsernameOrPasswordWrongError,
 )
 from utils.page import get_url_to_module, jump_to
+from widgets.toast import (
+    toast_error_and_return,
+    toast_success,
+    toast_warn_and_return,
+)
 
 
-def require_login() -> str:
+def require_login() -> User:
     uid_container: Queue = Queue(1)
 
     with popup("登录", size="large", closable=False):
@@ -63,7 +63,7 @@ def on_login_button_clicked(uid_container: Queue) -> None:
     password: str = pin.password
 
     try:
-        uid = log_in(user_name, password)
+        user = User.login(user_name, password)
     except UsernameIlliegalError:
         toast_warn_and_return("请输入用户名")
     except PasswordIlliegalError:
@@ -73,7 +73,7 @@ def on_login_button_clicked(uid_container: Queue) -> None:
     else:
         toast_success("登录成功")
         close_popup()
-        uid_container.put(uid)
+        uid_container.put(user)
 
 
 def on_signup_button_clicked() -> None:

@@ -64,3 +64,11 @@ class UserURLIlliegalError(Exception):
 
 class DuplicatedUserURLError(Exception):
     pass
+
+
+class JianshuAlreadyBindedError(Exception):
+    pass
+
+
+class TradeNotExistError(Exception):
+    pass

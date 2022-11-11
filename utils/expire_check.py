@@ -1,14 +1,12 @@
-from datetime import datetime
-
 from apscheduler.schedulers.background import BackgroundScheduler
-from data.order import get_all_trading_orders_list, set_order_expired
+
+from data.order import get_active_orders_list
 
 
 def expire_check_job() -> None:
-    now_time = datetime.now()
-    for item in get_all_trading_orders_list("all"):
-        if item["expire_time"] < now_time:
-            set_order_expired(str(item["_id"]))
+    for order in get_active_orders_list("all", 10 ** 4):
+        if order.is_expired:
+            order.expire()
 
 
 scheduler = BackgroundScheduler()

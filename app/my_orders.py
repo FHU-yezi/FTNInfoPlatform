@@ -1,11 +1,3 @@
-from data.order import (
-    delete_order,
-    get_my_active_order,
-    get_my_finished_orders_list,
-    set_order_all_traded,
-)
-from data.token import create_token, verify_token
-from data.user import get_jianshu_bind_url
 from pywebio.output import (
     close_popup,
     popup,
@@ -14,6 +6,9 @@ from pywebio.output import (
     put_tabs,
     put_warning,
 )
+
+from data.order import Order
+from data.token import Token
 from utils.exceptions import TokenNotExistError
 from utils.html import link
 from utils.login import require_login
@@ -26,37 +21,37 @@ DESC: str = "查看并修改自己的意向单"
 VISIBILITY: bool = True
 
 
-def on_delete_confirmed(order_id: str) -> None:
-    delete_order(order_id)
+def on_delete_confirmed(order: Order) -> None:
+    order.delete()
     toast_success("删除成功")
     reload(delay=1)
 
 
-def on_set_all_traded_confirmed(order_id: str) -> None:
-    set_order_all_traded(order_id)
+def on_set_all_traded_confirmed(order: Order) -> None:
+    order.set_all_traded()
     toast_success("已设为全部完成")
     reload(delay=1)
 
 
-def on_change_unit_price_button_clicked(order_id: str) -> None:
+def on_change_unit_price_button_clicked(order: Order) -> None:
     jump_to(
         get_url_to_module(
             "change_unit_price",
-            {"order_id": order_id},
+            {"order_id": order.id},
         ),
     )
 
 
-def on_change_traded_amount_button_clicked(order_id: str) -> None:
+def on_change_traded_amount_button_clicked(order: Order) -> None:
     jump_to(
         get_url_to_module(
             "change_traded_amount",
-            {"order_id": order_id},
+            {"order_id": order.id},
         ),
     )
 
 
-def on_set_all_traded_button_clicked(order_id: str) -> None:
+def on_set_all_traded_button_clicked(order: Order) -> None:
     with popup("全部完成", size="large"):
         put_markdown(
             """
@@ -80,13 +75,13 @@ def on_set_all_traded_button_clicked(order_id: str) -> None:
                 },
             ],
             onclick=[
-                lambda: on_set_all_traded_confirmed(order_id),
+                lambda: on_set_all_traded_confirmed(order),
                 close_popup,
             ],
         )
 
 
-def on_order_delete_button_clicked(order_id: str) -> None:
+def on_order_delete_button_clicked(order: Order) -> None:
     with popup("确认删除", size="large"):
         put_markdown(
             """
@@ -110,7 +105,7 @@ def on_order_delete_button_clicked(order_id: str) -> None:
                 },
             ],
             onclick=[
-                lambda: on_delete_confirmed(order_id),
+                lambda: on_delete_confirmed(order),
                 close_popup,
             ],
         )
@@ -118,14 +113,15 @@ def on_order_delete_button_clicked(order_id: str) -> None:
 
 def my_orders() -> None:
     try:
-        uid = verify_token(get_token())
+        user = Token.from_token_value(get_token()).user
     except TokenNotExistError:
-        uid = require_login()
-        set_token(create_token(uid))
+        user = require_login()
+        token = user.generate_token()
+        set_token(token.value)
 
     put_markdown("# 我的意向单")
 
-    if not get_jianshu_bind_url(uid):
+    if not user.is_jianshu_binded:
         put_warning(
             put_markdown(
                 "绑定简书账号后才可发布意向单，"
@@ -134,8 +130,8 @@ def my_orders() -> None:
             ),
         )
 
-    buy_order_data = get_my_active_order(uid, "buy")
-    if not buy_order_data:
+    buy_order = user.buy_order
+    if not buy_order:
         put_markdown(
             f"""
             ## 买单
@@ -147,17 +143,7 @@ def my_orders() -> None:
             sanitize=False,
         )
     else:
-        buy_order_id = str(buy_order_data["_id"])
-        put_order_detail(
-            order_type=buy_order_data["order"]["type"],
-            publish_time=buy_order_data["publish_time"],
-            expire_time=buy_order_data["expire_time"],
-            unit_price=buy_order_data["order"]["price"]["unit"],
-            total_price=buy_order_data["order"]["price"]["total"],
-            total_amount=buy_order_data["order"]["amount"]["total"],
-            traded_amount=buy_order_data["order"]["amount"]["traded"],
-            remaining_amount=buy_order_data["order"]["amount"]["remaining"],
-        )
+        put_order_detail(buy_order)
         put_buttons(
             buttons=[
                 {
@@ -182,15 +168,15 @@ def my_orders() -> None:
                 },
             ],
             onclick=[
-                lambda: on_change_unit_price_button_clicked(buy_order_id),
-                lambda: on_change_traded_amount_button_clicked(buy_order_id),
-                lambda: on_set_all_traded_button_clicked(buy_order_id),
-                lambda: on_order_delete_button_clicked(buy_order_id),
+                lambda: on_change_unit_price_button_clicked(buy_order),
+                lambda: on_change_traded_amount_button_clicked(buy_order),
+                lambda: on_set_all_traded_button_clicked(buy_order),
+                lambda: on_order_delete_button_clicked(buy_order),
             ],
         )
 
-    sell_order_data = get_my_active_order(uid, "sell")
-    if not sell_order_data:
+    sell_order = user.sell_order
+    if not sell_order:
         put_markdown(
             f"""
             ## 卖单
@@ -202,17 +188,7 @@ def my_orders() -> None:
             sanitize=False,
         )
     else:
-        sell_order_id = str(sell_order_data["_id"])
-        put_order_detail(
-            order_type=sell_order_data["order"]["type"],
-            publish_time=sell_order_data["publish_time"],
-            expire_time=sell_order_data["expire_time"],
-            unit_price=sell_order_data["order"]["price"]["unit"],
-            total_price=sell_order_data["order"]["price"]["total"],
-            total_amount=sell_order_data["order"]["amount"]["total"],
-            traded_amount=sell_order_data["order"]["amount"]["traded"],
-            remaining_amount=sell_order_data["order"]["amount"]["remaining"],
-        )
+        put_order_detail(sell_order)
         put_buttons(
             buttons=[
                 {
@@ -237,10 +213,10 @@ def my_orders() -> None:
                 },
             ],
             onclick=[
-                lambda: on_change_unit_price_button_clicked(sell_order_id),
-                lambda: on_change_traded_amount_button_clicked(sell_order_id),
-                lambda: on_set_all_traded_button_clicked(sell_order_id),
-                lambda: on_order_delete_button_clicked(sell_order_id),
+                lambda: on_change_unit_price_button_clicked(sell_order),
+                lambda: on_change_traded_amount_button_clicked(sell_order),
+                lambda: on_set_all_traded_button_clicked(sell_order),
+                lambda: on_order_delete_button_clicked(sell_order),
             ],
         )
 
@@ -253,30 +229,14 @@ def my_orders() -> None:
     )
 
     finished_buy_view = []
-    for finished_buy_order_data in get_my_finished_orders_list(uid, "buy", 20):
-        finished_buy_view.append(
-            put_finished_order_item(
-                publish_time=finished_buy_order_data["publish_time"],
-                finish_time=finished_buy_order_data.get("finish_time", "不可用"),
-                unit_price=finished_buy_order_data["order"]["price"]["unit"],
-                total_price=finished_buy_order_data["order"]["price"]["total"],
-                total_amount=finished_buy_order_data["order"]["amount"]["total"],
-            )
-        )
+    for finished_buy_order in user.finished_orders("buy", 20):
+        finished_buy_view.append(put_finished_order_item(finished_buy_order))
     if not finished_buy_view:
         finished_buy_view.append(put_markdown("您没有已完成的买单"))
 
     finished_sell_view = []
-    for finished_sell_order_data in get_my_finished_orders_list(uid, "sell", 20):
-        finished_sell_view.append(
-            put_finished_order_item(
-                publish_time=finished_sell_order_data["publish_time"],
-                finish_time=finished_sell_order_data.get("finish_time", "不可用"),
-                unit_price=finished_sell_order_data["order"]["price"]["unit"],
-                total_price=finished_sell_order_data["order"]["price"]["total"],
-                total_amount=finished_sell_order_data["order"]["amount"]["total"],
-            )
-        )
+    for finished_sell_order in user.finished_orders("sell", 20):
+        finished_sell_view.append(put_finished_order_item(finished_sell_order))
     if not finished_sell_view:
         finished_sell_view.append(put_markdown("您没有已完成的卖单"))
 

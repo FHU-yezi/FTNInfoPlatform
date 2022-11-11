@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Literal, Union
 
+from data.order import OrderStatus
 from utils.cache import timeout_cache
 from utils.db import order_data_db, trade_data_db
 
@@ -15,7 +16,7 @@ def get_in_trading_orders_count(order_type: Literal["buy", "sell", "all"]) -> in
         int: 交易中订单总数
     """
     filter: Dict[str, Any] = {
-        "status": 0,  # 交易中
+        "status": OrderStatus.TREADING,
     }
     if order_type in {"buy", "sell"}:
         filter["order.type"] = order_type
@@ -32,7 +33,7 @@ def get_finished_orders_count(order_type: Literal["buy", "sell", "all"]) -> int:
         int: 已完成订单总数
     """
     filter: Dict[str, Any] = {
-        "status": 1,  # 已完成
+        "status": OrderStatus.TREADING,
     }
     if order_type in {"buy", "sell"}:
         filter["order.type"] = order_type

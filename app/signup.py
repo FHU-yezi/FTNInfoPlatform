@@ -1,7 +1,7 @@
-from data.token import create_token
-from data.user import sign_up
 from pywebio.output import put_buttons, put_markdown, use_scope
 from pywebio.pin import pin, put_input
+
+from data.user import User
 from utils.callback import bind_enter_key_callback
 from utils.exceptions import (
     DuplicatedUsernameError,
@@ -24,16 +24,16 @@ VISIBILITY: bool = False
 
 def on_signup_button_clicked() -> None:
     user_name: str = pin.user_name
-    passowrd: str = pin.password
-    passowrd_again: str = pin.password_again
+    password: str = pin.password
+    password_again: str = pin.password_again
 
     try:
-        uid: str = sign_up(
+        user = User.signup(
             user_name,
-            passowrd,
-            passowrd_again,
-            admin_permissions_level=0,
-            user_permissions_level=1,
+            password,
+            password_again,
+            admin_permission_level=0,
+            user_permission_level=1,
         )
     except UsernameIlliegalError:
         toast_error_and_return("用户名为空或不合法")
@@ -68,9 +68,8 @@ def on_signup_button_clicked() -> None:
                     lambda: None,
                 ],
             )
-        # 为新注册的用户生成 Token
-        # 免去用户登录流程
-        set_token(create_token(uid))
+        # 为新注册的用户生成 Token，免去用户登录流程
+        set_token(user.generate_token().value)
         jump_to(get_base_url(), delay=1)
 
 
