@@ -1,7 +1,16 @@
-from pywebio.output import put_html
+from pywebio.output import put_widget
 
 
 def put_progress_bar(current: int, max: int):
-    return put_html(f'<progress value="{current}", max="{max}"></progress>').style(
-        "height: 24px;"  # 默认行高
+    tpl = """
+    <div class="progress">
+        <div class="progress-bar w-{{percent}}" role="progressbar" aria-valuenow="{{percent}}" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    """
+    current_percent: int = round(current / max)
+    return put_widget(
+        tpl,
+        {
+            "percent": current_percent,
+        },
     )

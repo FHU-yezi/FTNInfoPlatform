@@ -8,7 +8,7 @@ from data.overview import get_24h_traded_FTN_avg_price
 from utils.config import config
 from utils.expire_check import scheduler as expire_check_scheduler
 from utils.html import link
-from utils.log import access_logger
+from utils.log import access_logger, run_logger
 from utils.module_finder import Module, get_all_modules_info
 from utils.page import get_url_to_module
 from utils.patch import patch_all
@@ -17,7 +17,9 @@ modules_list = get_all_modules_info(config.base_path)
 
 # 注册信号事件回调
 # 在收到 SIGTERM 时执行访问日志强制刷新，之后退出
+signal(SIGTERM, lambda _, __: run_logger.force_refresh())
 signal(SIGTERM, lambda _, __: access_logger.force_refresh())
+run_logger.debug("已注册事件回调")
 
 
 def get_jump_link(module_name: str) -> str:
@@ -80,9 +82,13 @@ modules_list.append(
 )
 patched_modules_list: List[Module] = [patch_all(module) for module in modules_list]
 func_list: List[Callable[[], None]] = [x.page_func for x in patched_modules_list]
+run_logger.info(f"已加载 {len(func_list)} 个视图函数")
 
 # 启动意向单过期检查任务
 expire_check_scheduler.start()
+run_logger.info("意向单过期检查任务已启动")
+
+run_logger.info("启动网页服务......")
 start_server(
     func_list, host="0.0.0.0", port=config.deploy.port, cdn=config.deploy.pywebio_cdn
 )
