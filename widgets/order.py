@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pywebio.output import put_collapse, put_markdown, put_row, put_widget
+from pywebio.output import put_markdown, put_row, put_widget
 
 from data.order import Order
 from data.user import User
