@@ -20,6 +20,7 @@ order_data_db = db.order_data
 trade_data_db = db.trade_data
 user_data_db = db.user_data
 token_data_db = db.token_data
+run_log_db = db.run_log
 access_log_db = db.access_log
 
 # 创建索引
