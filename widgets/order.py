@@ -66,9 +66,8 @@ def put_order_item(order: Order, current_user: Optional[User] = None):
                         put_markdown(
                             f"{round(order.traded_amount / order.total_amount * 100)}%"
                         ),
-                        None,
                     ],
-                    size="auto auto 10px auto 1fr",
+                    size="80px auto 10px 50px",
                 ),
             ],
             "links": [
@@ -113,9 +112,8 @@ def put_order_detail(order: Order) -> None:
             put_progress_bar(order.traded_amount, order.total_amount),
             None,
             put_markdown(f"{round(order.traded_amount / order.total_amount * 100)}%"),
-            None,
         ],
-        size="auto auto 10px auto 1fr",
+        size="80px auto 10px 50px",
     ),
 
 
