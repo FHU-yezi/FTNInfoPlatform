@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pywebio = "^1.6.3"
+pywebio = "^1.7.0"
 pymongo = "^4.2.0"
 PyYAML = "^6.0"
 pyecharts = "^1.9.1"
