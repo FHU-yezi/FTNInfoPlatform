@@ -8,7 +8,7 @@ from utils.config import config
 from utils.page import get_chart_height, get_chart_width
 
 # 设置 PyEcharts CDN
-CurrentConfig.ONLINE_HOST = config.deploy.pyecharts_cdn
+CurrentConfig.ONLINE_HOST = config.deploy.PyEcharts_CDN
 
 
 def single_line_chart(

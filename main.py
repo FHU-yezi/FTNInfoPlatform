@@ -72,5 +72,8 @@ run_logger.info("意向单过期检查任务已启动")
 
 run_logger.info("启动网页服务......")
 start_server(
-    func_list, host="0.0.0.0", port=config.deploy.port, cdn=config.deploy.pywebio_cdn
+    func_list,
+    host="0.0.0.0",
+    port=config.deploy.port,
+    cdn=config.deploy.PyWebIO_CDN if config.deploy.enable_PyWebIO_CDN else False,
 )

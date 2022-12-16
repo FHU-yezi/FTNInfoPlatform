@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import IndexModel, MongoClient
 
 from utils.config import config
 
@@ -25,20 +25,34 @@ access_log_db = db.access_log
 
 # 创建索引
 
-order_data_db.create_index([("status", 1)])
-order_data_db.create_index([("order.type", 1)])
-order_data_db.create_index([("user.id", 1)])
-order_data_db.create_index([("order.price.unit", 1)])
+order_data_db.create_indexes(
+    [
+        IndexModel([("status", 1)]),
+        IndexModel([("order.type", 1)]),
+        IndexModel([("user.id", 1)]),
+        IndexModel([("order.price.unit", 1)]),
+    ]
+)
 
-trade_data_db.create_index([("trade_type", 1)])
-trade_data_db.create_index([("unit_price", 1)])
-trade_data_db.create_index([("order.id", 1)])
-trade_data_db.create_index([("user.id", 1)])
+trade_data_db.create_indexes(
+    [
+        IndexModel([("trade_type", 1)]),
+        IndexModel([("unit_price", 1)]),
+        IndexModel([("order.id", 1)]),
+        IndexModel([("user.id", 1)]),
+    ]
+)
 
-user_data_db.create_index([("user_name", 1)])
-user_data_db.create_index([("jianshu.url", 1)])
-
-token_data_db.create_index([("token", 1)])
-
-# 在 expire_time 时间点过期
-token_data_db.create_index([("expire_time", 1)], expireAfterSeconds=0)
+user_data_db.create_indexes(
+    [
+        IndexModel([("user_name", 1)]),
+        IndexModel([("jianshu.url", 1)]),
+    ]
+)
+token_data_db.create_indexes(
+    [
+        IndexModel([("token", 1)]),
+        # 过期索引
+        IndexModel([("expire_time", 1)], expireAfterSeconds=0)
+    ]
+)
