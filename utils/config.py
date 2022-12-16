@@ -8,8 +8,9 @@ from yaml import load as yaml_load
 _DEFAULT_CONFIG = {
     "version": "v0.1.0",
     "deploy": {
-        "pywebio_cdn": "",
-        "pyecharts_cdn": "",
+        "enable_PyWebIO_CDN": False,
+        "PyWebIO_CDN": "",
+        "PyEcharts_CDN": "",
         "port": 8080,
     },
     "base_path": "./app",
