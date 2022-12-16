@@ -1,4 +1,4 @@
-from pymongo import MongoClient, IndexModel
+from pymongo import IndexModel, MongoClient
 
 from utils.config import config
 
